@@ -1,0 +1,22 @@
+name: symfony-cat-cafe
+type: php
+docroot: public
+php_version: "8.2"
+webserver_type: nginx-fpm
+database:
+  type: mysql
+  version: "8.0"
+router_http_port: "80"
+router_https_port: "443"
+xdebug_enabled: false
+webimage_extra_packages: []
+dbimage_extra_packages: []
+use_dns_when_possible: true
+composer_version: "2"
+web_environment:
+  - DATABASE_URL=mysql://db:db@db:3306/db?serverVersion=8.0.32&charset=utf8mb4
+nodejs_version: "20"
+
+hooks:
+  post-start:
+    - exec: composer install

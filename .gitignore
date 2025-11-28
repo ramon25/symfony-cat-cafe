@@ -1,3 +1,18 @@
+###> ddev ###
+/.ddev/.gitignore
+/.ddev/db_snapshots/
+/.ddev/docker-compose.*.yaml
+/.ddev/providers/
+/.ddev/.ddev-docker-compose-*
+/.ddev/.homeadditions/
+/.ddev/.sso-config.yaml
+/.ddev/mutagen/
+/.ddev/.webimageBuild/
+/.ddev/.dbimageBuild/
+/.ddev/import.yaml
+/.ddev/xhprof/
+/.ddev/commands/
+###< ddev ###
 
 ###> symfony/framework-bundle ###
 /.env.local
