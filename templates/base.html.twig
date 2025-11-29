@@ -5,36 +5,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}Whiskers & Wonders Cat Cafe{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🐱</text></svg>">
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        colors: {
-                            'cat-orange': '#f97316',
-                            'cat-cream': '#fef3c7',
-                            'cat-brown': '#92400e',
-                        }
-                    }
-                }
-            }
-        </script>
         {% block stylesheets %}
-        <style>
-            .stat-bar {
-                transition: width 0.3s ease-in-out;
-            }
-            .cat-card:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-            }
-            .cat-card {
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
-            }
-        </style>
+            <link rel="stylesheet" href="{{ tailwind_css() }}">
         {% endblock %}
 
         {% block javascripts %}
+            {{ importmap('app') }}
         {% endblock %}
     </head>
     <body class="bg-gradient-to-br from-orange-50 to-amber-100 min-h-screen">
