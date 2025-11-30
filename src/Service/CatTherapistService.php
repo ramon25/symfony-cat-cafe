@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Cat;
+use App\Entity\ChatMessage;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
@@ -19,15 +20,27 @@ class CatTherapistService
 
     /**
      * Get AI-generated advice from a specific cat.
+     *
+     * @param ChatMessage[] $chatHistory Previous messages in the conversation
      */
-    public function getAdvice(Cat $cat, string $userMessage): string
+    public function getAdvice(Cat $cat, string $userMessage, array $chatHistory = []): string
     {
         $catContext = $this->buildCatContext($cat);
 
-        $messages = new MessageBag(
-            Message::forSystem($catContext),
-            Message::ofUser($userMessage),
-        );
+        $messages = new MessageBag(Message::forSystem($catContext));
+
+        // Add conversation history (last 10 messages for context)
+        $recentHistory = array_slice($chatHistory, -10);
+        foreach ($recentHistory as $msg) {
+            if ($msg->isFromUser()) {
+                $messages->add(Message::ofUser($msg->getContent()));
+            } else {
+                $messages->add(Message::ofAssistant($msg->getContent()));
+            }
+        }
+
+        // Add current user message
+        $messages->add(Message::ofUser($userMessage));
 
         try {
             $response = $this->catTherapistAgent->call($messages);

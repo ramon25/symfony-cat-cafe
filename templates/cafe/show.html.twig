@@ -132,6 +132,8 @@
             <div class="border-t pt-6"
                  data-controller="therapist"
                  data-therapist-url-value="{{ path('app_cat_therapy', {id: cat.id}) }}"
+                 data-therapist-history-url-value="{{ path('app_cat_chat_history', {id: cat.id}) }}"
+                 data-therapist-clear-url-value="{{ path('app_cat_chat_clear', {id: cat.id}) }}"
                  data-therapist-cat-name-value="{{ cat.name }}"
                  data-therapist-cat-emoji-value="{{ cat.moodEmoji }}">
                 <h3 class="font-bold text-gray-800 mb-4 flex items-center">
@@ -140,42 +142,70 @@
                     <span class="ml-2 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full">AI Powered</span>
                 </h3>
 
-                <div class="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl overflow-hidden shadow-inner">
+                <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-purple-100">
                     <!-- Chat Header -->
-                    <div class="bg-gradient-to-r from-pink-400 to-purple-400 px-4 py-3 flex items-center">
-                        <span class="text-3xl mr-3">{{ cat.moodEmoji }}</span>
-                        <div>
-                            <p class="text-white font-bold">Dr. {{ cat.name }}</p>
-                            <p class="text-pink-100 text-sm">Certified Cat Therapist</p>
+                    <div class="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 px-5 py-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-3 shadow-inner">
+                                <span class="text-2xl">{{ cat.moodEmoji }}</span>
+                            </div>
+                            <div>
+                                <p class="text-white font-bold text-lg">Dr. {{ cat.name }}</p>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                                    <p class="text-purple-100 text-sm">Online - Ready to chat</p>
+                                </div>
+                            </div>
                         </div>
+                        <button type="button"
+                                data-therapist-target="clearBtn"
+                                data-action="click->therapist#clearChat"
+                                class="text-white/70 hover:text-white hover:bg-white/20 p-2 rounded-lg transition-all"
+                                title="Clear chat history">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
                     </div>
 
                     <!-- Chat Messages Area -->
-                    <div data-therapist-target="chatArea" class="h-64 overflow-y-auto p-4 space-y-2">
-                        <div data-therapist-target="messages">
+                    <div data-therapist-target="chatArea" class="h-96 overflow-y-auto bg-gradient-to-b from-purple-50/50 to-pink-50/50">
+                        <div data-therapist-target="messages" class="p-4 space-y-4">
                             <!-- Messages will be added here dynamically -->
+                        </div>
+                        <!-- Loading indicator -->
+                        <div data-therapist-target="loading" class="hidden flex items-center justify-center py-8">
+                            <div class="flex items-center gap-2 text-purple-400">
+                                <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Loading chat history...</span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Chat Input -->
-                    <form data-action="submit->therapist#sendMessage" class="border-t border-purple-100 p-3 bg-white/50">
-                        <div class="flex gap-2">
-                            <input type="text"
-                                   data-therapist-target="input"
-                                   data-action="keydown->therapist#handleKeydown"
-                                   placeholder="Share what's on your mind..."
-                                   class="flex-1 px-4 py-2 rounded-full border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm"
-                                   autocomplete="off">
+                    <form data-action="submit->therapist#sendMessage" class="border-t border-purple-100 p-4 bg-white">
+                        <div class="flex gap-3">
+                            <div class="flex-1 relative">
+                                <input type="text"
+                                       data-therapist-target="input"
+                                       data-action="keydown->therapist#handleKeydown"
+                                       placeholder="Share what's on your mind..."
+                                       class="w-full px-5 py-3 rounded-2xl border-2 border-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-300 text-gray-700 placeholder-gray-400 transition-all"
+                                       autocomplete="off">
+                            </div>
                             <button type="submit"
                                     data-therapist-target="submit"
-                                    class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-4 py-2 rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2 text-sm font-medium">
+                                    class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-2xl transition-all shadow-lg hover:shadow-xl flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span>Send</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                                 </svg>
                             </button>
                         </div>
-                        <p class="text-xs text-purple-400 mt-2 text-center">Ask {{ cat.name }} for life advice from a cat's perspective!</p>
+                        <p class="text-xs text-gray-400 mt-3 text-center">Your conversation is saved and will be here when you return</p>
                     </form>
                 </div>
             </div>

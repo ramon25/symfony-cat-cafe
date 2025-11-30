@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Cat;
+use App\Entity\ChatMessage;
 use App\Repository\CatRepository;
+use App\Repository\ChatMessageRepository;
 use App\Service\CatTherapistService;
 use App\Service\CatWisdomService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,6 +22,7 @@ class CafeController extends AbstractController
         private CatRepository $catRepository,
         private CatWisdomService $wisdomService,
         private CatTherapistService $therapistService,
+        private ChatMessageRepository $chatMessageRepository,
     ) {
     }
 
@@ -130,6 +133,7 @@ class CafeController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $userMessage = $data['message'] ?? '';
+        $sessionId = $request->getSession()->getId();
 
         if (empty(trim($userMessage))) {
             return new JsonResponse([
@@ -138,13 +142,68 @@ class CafeController extends AbstractController
             ], 400);
         }
 
-        $advice = $this->therapistService->getAdvice($cat, $userMessage);
+        // Get conversation history for context
+        $chatHistory = $this->chatMessageRepository->findByCatAndSession($cat, $sessionId);
+
+        // Save user message
+        $userChatMessage = new ChatMessage();
+        $userChatMessage->setCat($cat);
+        $userChatMessage->setSessionId($sessionId);
+        $userChatMessage->setRole('user');
+        $userChatMessage->setContent($userMessage);
+        $this->entityManager->persist($userChatMessage);
+
+        // Get AI response with conversation history
+        $advice = $this->therapistService->getAdvice($cat, $userMessage, $chatHistory);
+
+        // Save assistant response
+        $assistantMessage = new ChatMessage();
+        $assistantMessage->setCat($cat);
+        $assistantMessage->setSessionId($sessionId);
+        $assistantMessage->setRole('assistant');
+        $assistantMessage->setContent($advice);
+        $this->entityManager->persist($assistantMessage);
+
+        $this->entityManager->flush();
 
         return new JsonResponse([
             'success' => true,
             'catName' => $cat->getName(),
             'catEmoji' => $cat->getMoodEmoji(),
             'advice' => $advice,
+        ]);
+    }
+
+    #[Route('/cat/{id}/chat-history', name: 'app_cat_chat_history', methods: ['GET'])]
+    public function chatHistory(Cat $cat, Request $request): JsonResponse
+    {
+        $sessionId = $request->getSession()->getId();
+        $messages = $this->chatMessageRepository->findByCatAndSession($cat, $sessionId);
+
+        $formattedMessages = array_map(fn(ChatMessage $msg) => [
+            'role' => $msg->getRole(),
+            'content' => $msg->getContent(),
+            'createdAt' => $msg->getCreatedAt()->format('Y-m-d H:i:s'),
+        ], $messages);
+
+        return new JsonResponse([
+            'success' => true,
+            'messages' => $formattedMessages,
+            'catName' => $cat->getName(),
+            'catEmoji' => $cat->getMoodEmoji(),
+        ]);
+    }
+
+    #[Route('/cat/{id}/chat-clear', name: 'app_cat_chat_clear', methods: ['POST'])]
+    public function chatClear(Cat $cat, Request $request): JsonResponse
+    {
+        $sessionId = $request->getSession()->getId();
+        $deletedCount = $this->chatMessageRepository->clearByCatAndSession($cat, $sessionId);
+
+        return new JsonResponse([
+            'success' => true,
+            'deletedCount' => $deletedCount,
+            'message' => 'Chat history cleared successfully!',
         ]);
     }
 
