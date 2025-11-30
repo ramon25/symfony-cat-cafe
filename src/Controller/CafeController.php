@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Cat;
 use App\Repository\CatRepository;
+use App\Service\CatWisdomService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,6 +17,7 @@ class CafeController extends AbstractController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CatRepository $catRepository,
+        private CatWisdomService $wisdomService,
     ) {
     }
 
@@ -102,6 +105,22 @@ class CafeController extends AbstractController
         $this->addFlash('success', sprintf('%s takes a peaceful nap.', $cat->getName()));
 
         return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
+    }
+
+    #[Route('/cat/{id}/wisdom', name: 'app_cat_wisdom', methods: ['GET'])]
+    public function wisdom(Cat $cat): JsonResponse
+    {
+        $fortune = $this->wisdomService->getWisdomFromCat($cat->getName(), $cat->getMood());
+
+        return new JsonResponse([
+            'success' => true,
+            'catName' => $cat->getName(),
+            'catEmoji' => $cat->getMoodEmoji(),
+            'prefix' => $fortune['prefix'],
+            'wisdom' => $fortune['wisdom'],
+            'luckyItem' => $fortune['luckyItem'],
+            'luckyNumber' => $fortune['luckyNumber'],
+        ]);
     }
 
     #[Route('/cat/{id}/adopt', name: 'app_cat_adopt', methods: ['POST'])]
