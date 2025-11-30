@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Cat;
 use App\Repository\CatRepository;
+use App\Service\CatTherapistService;
 use App\Service\CatWisdomService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +19,7 @@ class CafeController extends AbstractController
         private EntityManagerInterface $entityManager,
         private CatRepository $catRepository,
         private CatWisdomService $wisdomService,
+        private CatTherapistService $therapistService,
     ) {
     }
 
@@ -120,6 +122,29 @@ class CafeController extends AbstractController
             'wisdom' => $fortune['wisdom'],
             'luckyItem' => $fortune['luckyItem'],
             'luckyNumber' => $fortune['luckyNumber'],
+        ]);
+    }
+
+    #[Route('/cat/{id}/therapy', name: 'app_cat_therapy', methods: ['POST'])]
+    public function therapy(Cat $cat, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $userMessage = $data['message'] ?? '';
+
+        if (empty(trim($userMessage))) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'Please share what\'s on your mind!',
+            ], 400);
+        }
+
+        $advice = $this->therapistService->getAdvice($cat, $userMessage);
+
+        return new JsonResponse([
+            'success' => true,
+            'catName' => $cat->getName(),
+            'catEmoji' => $cat->getMoodEmoji(),
+            'advice' => $advice,
         ]);
     }
 
