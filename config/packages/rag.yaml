@@ -1,0 +1,14 @@
+# RAG (Retrieval-Augmented Generation) Configuration
+
+services:
+    # Embedding service using Google's Generative AI
+    App\RAG\EmbeddingService:
+        arguments:
+            $geminiApiKey: '%env(GEMINI_API_KEY)%'
+
+    # Vector store using Qdrant
+    App\RAG\VectorStore:
+        arguments:
+            $qdrantHost: '%env(QDRANT_HOST)%'
+            $qdrantPort: '%env(int:QDRANT_PORT)%'
+            $collectionName: '%env(QDRANT_COLLECTION)%'
