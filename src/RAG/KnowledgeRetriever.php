@@ -7,14 +7,24 @@ use App\Entity\Cat;
 /**
  * Retrieves relevant documents from the knowledge base based on user queries.
  *
- * Uses keyword-based semantic matching to find the most relevant content
- * for augmenting AI responses.
+ * Supports two retrieval modes:
+ * - Vector search (semantic) via Qdrant when available
+ * - Keyword-based fallback when vector store is not initialized
  */
 class KnowledgeRetriever
 {
     public function __construct(
         private CatCafeKnowledgeBase $knowledgeBase,
+        private ?VectorStore $vectorStore = null,
     ) {
+    }
+
+    /**
+     * Check if vector search is available.
+     */
+    public function isVectorSearchAvailable(): bool
+    {
+        return $this->vectorStore !== null && $this->vectorStore->isInitialized();
     }
 
     /**
@@ -26,6 +36,48 @@ class KnowledgeRetriever
      * @return RetrievalResult
      */
     public function retrieve(string $query, int $limit = 5, array $categories = []): RetrievalResult
+    {
+        // Try vector search first if available
+        if ($this->isVectorSearchAvailable()) {
+            return $this->vectorRetrieve($query, $limit, $categories);
+        }
+
+        // Fallback to keyword search
+        return $this->keywordRetrieve($query, $limit, $categories);
+    }
+
+    /**
+     * Vector-based semantic retrieval.
+     */
+    private function vectorRetrieve(string $query, int $limit, array $categories): RetrievalResult
+    {
+        try {
+            if (!empty($categories)) {
+                $results = $this->vectorStore->searchMultipleCategories($query, $categories, (int)ceil($limit / count($categories)));
+                $results = array_slice($results, 0, $limit);
+            } else {
+                $results = $this->vectorStore->search($query, $limit);
+            }
+
+            // Convert VectorSearchResult to KnowledgeDocument
+            $documents = array_map(fn($r) => $r->toKnowledgeDocument(), $results);
+            $scores = array_map(fn($r) => $r->score, $results);
+
+            return new RetrievalResult(
+                query: $query,
+                documents: $documents,
+                scores: $scores
+            );
+        } catch (\Throwable $e) {
+            // Fallback to keyword search on error
+            return $this->keywordRetrieve($query, $limit, $categories);
+        }
+    }
+
+    /**
+     * Keyword-based retrieval (fallback).
+     */
+    private function keywordRetrieve(string $query, int $limit, array $categories): RetrievalResult
     {
         $documents = $this->knowledgeBase->getDocuments();
 
@@ -65,16 +117,69 @@ class KnowledgeRetriever
      */
     public function retrieveForTherapy(string $query, ?Cat $cat = null): RetrievalResult
     {
+        // Use vector search if available for better semantic matching
+        if ($this->isVectorSearchAvailable()) {
+            return $this->vectorRetrieveForTherapy($query, $cat);
+        }
+
+        return $this->keywordRetrieveForTherapy($query, $cat);
+    }
+
+    /**
+     * Vector-based therapy retrieval.
+     */
+    private function vectorRetrieveForTherapy(string $query, ?Cat $cat): RetrievalResult
+    {
+        // Search across therapy-relevant categories
+        $categories = ['emotions', 'wisdom'];
+        if ($cat) {
+            $categories[] = 'breeds';
+        }
+
+        $results = $this->vectorStore->searchMultipleCategories($query, $categories, 2);
+
+        // If a cat is provided, also search for breed-specific info
+        if ($cat) {
+            $breedResults = $this->vectorStore->search($cat->getBreed(), 1, 'breeds');
+            $results = array_merge($results, $breedResults);
+        }
+
+        // Deduplicate by document ID
+        $seen = [];
+        $unique = [];
+        foreach ($results as $result) {
+            if (!isset($seen[$result->documentId])) {
+                $seen[$result->documentId] = true;
+                $unique[] = $result;
+            }
+        }
+
+        // Sort by score and limit
+        usort($unique, fn($a, $b) => $b->score <=> $a->score);
+        $unique = array_slice($unique, 0, 5);
+
+        return new RetrievalResult(
+            query: $query,
+            documents: array_map(fn($r) => $r->toKnowledgeDocument(), $unique),
+            scores: array_map(fn($r) => $r->score, $unique)
+        );
+    }
+
+    /**
+     * Keyword-based therapy retrieval (fallback).
+     */
+    private function keywordRetrieveForTherapy(string $query, ?Cat $cat): RetrievalResult
+    {
         // Get emotional support content (highest priority for therapy)
-        $emotionalResult = $this->retrieve($query, 2, ['emotions']);
+        $emotionalResult = $this->keywordRetrieve($query, 2, ['emotions']);
 
         // Get relevant wisdom
-        $wisdomResult = $this->retrieve($query, 2, ['wisdom']);
+        $wisdomResult = $this->keywordRetrieve($query, 2, ['wisdom']);
 
         // Get cat-specific content if a cat is provided
         $catContent = [];
         if ($cat) {
-            $breedResult = $this->retrieve($cat->getBreed(), 1, ['breeds']);
+            $breedResult = $this->keywordRetrieve($cat->getBreed(), 1, ['breeds']);
             $catContent = $breedResult->getDocuments();
         }
 

@@ -15,6 +15,8 @@ use_dns_when_possible: true
 composer_version: "2"
 web_environment:
   - DATABASE_URL=mysql://db:db@db:3306/db?serverVersion=8.0.32&charset=utf8mb4
+  - QDRANT_HOST=qdrant
+  - QDRANT_PORT=6333
 nodejs_version: "20"
 
 hooks:

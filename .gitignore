@@ -2,6 +2,7 @@
 /.ddev/.gitignore
 /.ddev/db_snapshots/
 /.ddev/docker-compose.*.yaml
+!/.ddev/docker-compose.qdrant.yaml
 /.ddev/providers/
 /.ddev/.ddev-docker-compose-*
 /.ddev/.homeadditions/

@@ -32,6 +32,8 @@
         "symfony/var-dumper": "7.4.*",
         "symfony/var-exporter": "7.4.*",
         "symfony/yaml": "7.4.*",
+        "symfony/http-client": "7.4.*",
+        "qdrant/qdrant-php": "^1.0",
         "symfonycasts/tailwind-bundle": "^0.11.1"
     },
     "config": {
