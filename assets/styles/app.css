@@ -1,9 +1,17 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
     --color-cat-orange: #f97316;
     --color-cat-cream: #fef3c7;
     --color-cat-brown: #92400e;
+
+    /* Dark mode colors */
+    --color-dark-bg: #1a1a2e;
+    --color-dark-surface: #16213e;
+    --color-dark-card: #1f2937;
+    --color-dark-border: #374151;
 }
 
 /* Custom component styles */
@@ -20,6 +28,10 @@
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
+.dark .cat-card:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
 /* Cat Fortune Cookie animations */
 @keyframes fadeIn {
     from {
@@ -34,4 +46,14 @@
 
 .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Dark mode transition for smoother theme switching */
+html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode base styles */
+html.dark {
+    color-scheme: dark;
 }
