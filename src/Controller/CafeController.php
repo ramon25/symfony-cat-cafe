@@ -144,7 +144,7 @@ class CafeController extends AbstractController
     #[Route('/cat/{id}/wisdom', name: 'app_cat_wisdom', methods: ['GET'])]
     public function wisdom(Cat $cat): JsonResponse
     {
-        $fortune = $this->wisdomService->getWisdomFromCat($cat->getName(), $cat->getMood());
+        $fortune = $this->wisdomService->getWisdomFromCat($cat);
 
         // Track wisdom achievement
         $this->achievementService->incrementStat('wisdom', $cat->getId());

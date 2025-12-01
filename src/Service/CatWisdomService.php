@@ -2,12 +2,17 @@
 
 namespace App\Service;
 
+use App\Entity\Cat;
+use Symfony\AI\Agent\AgentInterface;
+use Symfony\AI\Platform\Message\Message;
+use Symfony\AI\Platform\Message\MessageBag;
+
 /**
- * Service that provides whimsical cat wisdom fortunes.
+ * AI-powered service that provides whimsical cat wisdom fortunes.
  */
 class CatWisdomService
 {
-    private const WISDOMS = [
+    private const FALLBACK_WISDOMS = [
         "A warm lap is worth a thousand words.",
         "The best things in life are worth waiting for... like dinner.",
         "Nap often, for dreams await the patient soul.",
@@ -28,16 +33,6 @@ class CatWisdomService
         "Always land on your feet, but don't be afraid to fall.",
         "A belly rub a day keeps the grumpies away.",
         "The quietest meow often speaks the loudest truth.",
-        "Life is better with a little catnip.",
-        "Judge not by the scratching post, but by the character.",
-        "Patience is the art of hiding your anticipation for treats.",
-        "Even the mightiest lion started as a curious kitten.",
-        "Elegance is an attitude, not just a coat color.",
-        "The window to the soul is best viewed from a windowsill.",
-        "In every ending, there is a new beginning... especially at 3 AM.",
-        "Share your toys generously, except the favorite one.",
-        "The greatest journeys begin with a single pounce.",
-        "Let your inner kitten guide you to joy.",
     ];
 
     private const LUCKY_ITEMS = [
@@ -53,25 +48,91 @@ class CatWisdomService
         "A dangling feather",
     ];
 
-    public function getRandomWisdom(): array
+    public function __construct(
+        private AgentInterface $catWisdomAgent,
+    ) {
+    }
+
+    /**
+     * Get AI-generated wisdom from a specific cat.
+     */
+    public function getWisdomFromCat(Cat $cat): array
     {
-        $wisdom = self::WISDOMS[array_rand(self::WISDOMS)];
+        $wisdom = $this->generateAIWisdom($cat);
         $luckyItem = self::LUCKY_ITEMS[array_rand(self::LUCKY_ITEMS)];
         $luckyNumber = random_int(1, 9);
 
+        $prefix = $this->buildPrefix($cat);
+
         return [
+            'prefix' => $prefix,
             'wisdom' => $wisdom,
             'luckyItem' => $luckyItem,
             'luckyNumber' => $luckyNumber,
         ];
     }
 
-    public function getWisdomFromCat(string $catName, string $catMood): array
+    /**
+     * Generate AI-powered wisdom based on the cat's personality.
+     */
+    private function generateAIWisdom(Cat $cat): string
     {
-        $fortune = $this->getRandomWisdom();
+        $context = $this->buildCatContext($cat);
 
-        // Add a mood-based prefix from the cat
-        $prefix = match ($catMood) {
+        $messages = new MessageBag(Message::forSystem($context));
+        $messages->add(Message::ofUser('Share your wisdom with me.'));
+
+        try {
+            $response = $this->catWisdomAgent->call($messages);
+            $wisdom = trim($response->getContent());
+
+            // Clean up the response - remove quotes if present
+            $wisdom = trim($wisdom, '"\'');
+
+            return $wisdom;
+        } catch (\Throwable $e) {
+            // Fallback to static wisdom if AI fails
+            return self::FALLBACK_WISDOMS[array_rand(self::FALLBACK_WISDOMS)];
+        }
+    }
+
+    /**
+     * Build context about the cat for AI wisdom generation.
+     */
+    private function buildCatContext(Cat $cat): string
+    {
+        $moodDescriptions = [
+            'happy' => 'feeling joyful and optimistic',
+            'content' => 'calm and at peace with the world',
+            'grumpy' => 'a bit cynical but still wise',
+            'upset' => 'contemplative and seeking meaning',
+            'hungry' => 'thinking about sustenance and patience',
+            'sleepy' => 'dreamy and philosophical',
+        ];
+
+        $moodDescription = $moodDescriptions[$cat->getMood()] ?? 'in a mysterious mood';
+
+        return sprintf(
+            "You are %s, a %d-year-old %s %s cat who is currently %s. " .
+            "Your personality: %s. " .
+            "Generate wisdom that reflects your unique perspective as this cat.",
+            $cat->getName(),
+            $cat->getAge(),
+            $cat->getColor(),
+            $cat->getBreed(),
+            $moodDescription,
+            $cat->getDescription() ?? 'A wise cafe cat who enjoys sharing insights with visitors'
+        );
+    }
+
+    /**
+     * Build a mood-based prefix for the wisdom delivery.
+     */
+    private function buildPrefix(Cat $cat): string
+    {
+        $catName = $cat->getName();
+
+        return match ($cat->getMood()) {
             'happy' => "$catName purrs contentedly and shares this wisdom:",
             'content' => "$catName blinks slowly and offers this insight:",
             'grumpy' => "$catName huffs but reluctantly shares:",
@@ -80,12 +141,5 @@ class CatWisdomService
             'sleepy' => "$catName yawns and whispers:",
             default => "$catName gazes at you wisely and says:",
         };
-
-        return [
-            'prefix' => $prefix,
-            'wisdom' => $fortune['wisdom'],
-            'luckyItem' => $fortune['luckyItem'],
-            'luckyNumber' => $fortune['luckyNumber'],
-        ];
     }
 }
