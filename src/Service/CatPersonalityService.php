@@ -3,19 +3,101 @@
 namespace App\Service;
 
 use App\Entity\Cat;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 
 /**
  * AI-powered service for generating dynamic cat personality profiles,
- * backstories, and mood-based thoughts.
+ * backstories, and mood-based thoughts. Caches generated content in database.
  */
 class CatPersonalityService
 {
     public function __construct(
         private AgentInterface $catPersonalityAgent,
+        private EntityManagerInterface $entityManager,
     ) {
+    }
+
+    /**
+     * Get or generate an AI-powered personality profile for a cat.
+     * Uses cached version if available, generates new one if not.
+     */
+    public function getPersonalityProfile(Cat $cat, bool $forceRegenerate = false): string
+    {
+        // Return cached version if available and not forcing regeneration
+        if (!$forceRegenerate && $cat->getAiPersonalityProfile() !== null) {
+            return $cat->getAiPersonalityProfile();
+        }
+
+        $profile = $this->generatePersonalityProfile($cat);
+
+        // Save to database
+        $cat->setAiPersonalityProfile($profile);
+        $cat->setAiGeneratedAt(new \DateTimeImmutable());
+        $this->entityManager->flush();
+
+        return $profile;
+    }
+
+    /**
+     * Get or generate a unique backstory for a cat.
+     * Uses cached version if available, generates new one if not.
+     */
+    public function getBackstory(Cat $cat, bool $forceRegenerate = false): string
+    {
+        // Return cached version if available and not forcing regeneration
+        if (!$forceRegenerate && $cat->getAiBackstory() !== null) {
+            return $cat->getAiBackstory();
+        }
+
+        $backstory = $this->generateBackstory($cat);
+
+        // Save to database
+        $cat->setAiBackstory($backstory);
+        $cat->setAiGeneratedAt(new \DateTimeImmutable());
+        $this->entityManager->flush();
+
+        return $backstory;
+    }
+
+    /**
+     * Get or generate fun facts about a cat.
+     * Uses cached version if available, generates new one if not.
+     */
+    public function getFunFacts(Cat $cat, bool $forceRegenerate = false): array
+    {
+        // Return cached version if available and not forcing regeneration
+        if (!$forceRegenerate && $cat->getAiFunFacts() !== null) {
+            return $cat->getAiFunFacts();
+        }
+
+        $facts = $this->generateFunFacts($cat);
+
+        // Save to database
+        $cat->setAiFunFacts($facts);
+        $cat->setAiGeneratedAt(new \DateTimeImmutable());
+        $this->entityManager->flush();
+
+        return $facts;
+    }
+
+    /**
+     * Generate all AI content for a cat and save to database.
+     */
+    public function generateAllContent(Cat $cat): void
+    {
+        $profile = $this->generatePersonalityProfile($cat);
+        $backstory = $this->generateBackstory($cat);
+        $facts = $this->generateFunFacts($cat);
+
+        $cat->setAiPersonalityProfile($profile);
+        $cat->setAiBackstory($backstory);
+        $cat->setAiFunFacts($facts);
+        $cat->setAiGeneratedAt(new \DateTimeImmutable());
+
+        $this->entityManager->flush();
     }
 
     /**
@@ -60,6 +142,7 @@ class CatPersonalityService
 
     /**
      * Generate what the cat is "thinking" based on their current mood and stats.
+     * This is always generated fresh as it's based on current state.
      */
     public function generateCatThought(Cat $cat): string
     {
@@ -80,6 +163,7 @@ class CatPersonalityService
 
     /**
      * Generate a special message for adopters based on bonding level.
+     * This is always generated fresh as it depends on current bonding.
      */
     public function generateBondingMessage(Cat $cat, int $bondingLevel): string
     {
