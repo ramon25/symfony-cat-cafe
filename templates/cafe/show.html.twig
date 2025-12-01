@@ -173,16 +173,65 @@
             </div>
 
             {% if not cat.adopted %}
-            <!-- Adopt Button (separate from Live Component) -->
-            <div class="border-t dark:border-gray-700 pt-6">
-                <form action="{{ path('app_cat_adopt', {id: cat.id}) }}" method="POST">
+            <!-- Adoption Journey Section -->
+            <div class="border-t dark:border-gray-700 pt-6 space-y-4">
+                <!-- Fostering Status -->
+                {% if cat.fostered %}
+                <div class="bg-green-100 dark:bg-green-900/50 border border-green-300 dark:border-green-700 rounded-xl p-4">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">🏡</span>
+                        <div>
+                            <p class="font-bold text-green-800 dark:text-green-200">You're fostering {{ cat.name }}!</p>
+                            <p class="text-sm text-green-600 dark:text-green-300">Since {{ cat.fosteredAt|date('F j, Y') }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Quiz & Journey Buttons -->
+                <div class="grid grid-cols-2 gap-3">
+                    {% if cat.compatibilityScore is null %}
+                    <a href="{{ path('app_cat_quiz', {id: cat.id}) }}"
+                       class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl">
+                        <span class="text-xl">📝</span>
+                        <span>Take Quiz</span>
+                    </a>
+                    {% else %}
+                    <a href="{{ path('app_cat_quiz_result', {id: cat.id}) }}"
+                       class="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 text-purple-700 dark:text-purple-300 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center space-x-2 border border-purple-200 dark:border-purple-700">
+                        <span class="text-xl">{{ cat.compatibilityEmoji }}</span>
+                        <span>{{ cat.compatibilityScore }}% Match</span>
+                    </a>
+                    {% endif %}
+
+                    <a href="{{ path('app_cat_journey', {id: cat.id}) }}"
+                       class="bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/50 dark:to-amber-900/50 text-orange-700 dark:text-orange-300 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center space-x-2 border border-orange-200 dark:border-orange-700">
+                        <span class="text-xl">🗺️</span>
+                        <span>Journey</span>
+                    </a>
+                </div>
+
+                <!-- Main Adopt Button -->
+                {% if cat.canBeAdopted %}
+                <form action="{{ path('app_cat_adopt_new', {id: cat.id}) }}" method="POST">
                     <button type="submit"
-                            onclick="return confirm('Are you sure you want to adopt {{ cat.name }}? This is a big responsibility!')"
+                            onclick="return confirm('Are you ready to give {{ cat.name }} their forever home? This is wonderful!')"
                             class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-4 px-6 rounded-xl transition-all text-lg flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl">
                         <span class="text-2xl">🏠</span>
-                        <span>Adopt {{ cat.name }}</span>
+                        <span>Adopt {{ cat.name }}!</span>
                     </button>
                 </form>
+                {% else %}
+                <div class="bg-gray-100 dark:bg-gray-700 rounded-xl p-4 text-center">
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">
+                        <span class="font-bold">Keep bonding!</span>
+                        Build a stronger connection with {{ cat.name }} to unlock adoption.
+                    </p>
+                    <a href="{{ path('app_cat_journey', {id: cat.id}) }}" class="text-orange-600 dark:text-orange-400 hover:underline text-sm font-medium">
+                        View requirements
+                    </a>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
 

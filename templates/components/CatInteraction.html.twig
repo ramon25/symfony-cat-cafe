@@ -5,16 +5,23 @@
     {# Action Message Toast #}
     {% if actionMessage %}
     <div class="mb-4 p-4 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 border border-green-300 dark:border-green-700 text-green-800 dark:text-green-200 rounded-xl flex items-center justify-between animate-fade-in shadow-md">
-        <div class="flex items-center gap-3">
-            <span class="text-2xl">
-                {% if lastAction == 'feed' %}🍽️
-                {% elseif lastAction == 'pet' %}🤗
-                {% elseif lastAction == 'play' %}🧶
-                {% elseif lastAction == 'rest' %}😴
-                {% else %}✨
-                {% endif %}
-            </span>
-            <span class="font-medium">{{ actionMessage }}</span>
+        <div class="flex-1">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">
+                    {% if lastAction == 'feed' %}🍽️
+                    {% elseif lastAction == 'pet' %}🤗
+                    {% elseif lastAction == 'play' %}🧶
+                    {% elseif lastAction == 'rest' %}😴
+                    {% else %}✨
+                    {% endif %}
+                </span>
+                <span class="font-medium">{{ actionMessage }}</span>
+            </div>
+            {% if bondingMessage %}
+            <div class="mt-1 ml-9 text-sm text-purple-600 dark:text-purple-400 font-medium">
+                {{ cat.bondingEmoji }} {{ bondingMessage }}
+            </div>
+            {% endif %}
         </div>
         <button type="button" data-action="live#action" data-live-action-param="clearMessage" class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,6 +114,33 @@
     </div>
 
     {% if not cat.adopted %}
+    {# Bonding Progress #}
+    <div class="mb-6 p-4 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-xl border border-pink-200 dark:border-pink-800">
+        <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <span class="text-xl">{{ cat.bondingEmoji }}</span>
+                Bond with {{ cat.name }}
+            </h3>
+            <span class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ cat.bondingLevel }}%</span>
+        </div>
+
+        <div class="relative h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div class="absolute h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full transition-all duration-500"
+                 style="width: {{ cat.bondingLevel }}%"></div>
+            <div class="absolute top-0 left-[30%] h-full w-0.5 bg-orange-400 opacity-50" title="Foster unlock"></div>
+            <div class="absolute top-0 left-[50%] h-full w-0.5 bg-green-400 opacity-50" title="Adoption unlock"></div>
+        </div>
+
+        <div class="flex items-center justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
+            <span>{{ cat.bondingMilestone }}</span>
+            <span>{{ cat.preferredInteractionEmoji }} Loves: {{ cat.preferredInteractionLabel }}</span>
+        </div>
+
+        <a href="{{ path('app_cat_journey', {id: cat.id}) }}" class="mt-3 block text-center text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium">
+            View Adoption Journey
+        </a>
+    </div>
+
     {# Interaction Buttons #}
     <div class="border-t dark:border-gray-700 pt-6">
         <h3 class="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">

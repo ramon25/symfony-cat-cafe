@@ -9,6 +9,18 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: CatRepository::class)]
 class Cat
 {
+    public const INTERACTION_FEED = 'feed';
+    public const INTERACTION_PET = 'pet';
+    public const INTERACTION_PLAY = 'play';
+    public const INTERACTION_REST = 'rest';
+
+    public const ALL_INTERACTIONS = [
+        self::INTERACTION_FEED,
+        self::INTERACTION_PET,
+        self::INTERACTION_PLAY,
+        self::INTERACTION_REST,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -53,6 +65,25 @@ class Cat
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $adoptedAt = null;
+
+    // Bonding System
+    #[ORM\Column]
+    private int $bondingLevel = 0;
+
+    // Cat Preferences System - which interaction this cat loves most
+    #[ORM\Column(length: 20)]
+    private string $preferredInteraction = 'pet';
+
+    // Fostering System
+    #[ORM\Column]
+    private bool $fostered = false;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $fosteredAt = null;
+
+    // Compatibility quiz score (stored when user completes quiz)
+    #[ORM\Column(nullable: true)]
+    private ?int $compatibilityScore = null;
 
     public function __construct()
     {
@@ -195,12 +226,14 @@ class Cat
         $this->setHunger($this->hunger - 30);
         $this->setHappiness($this->happiness + 10);
         $this->setEnergy($this->energy + 5);
+        $this->increaseBonding(self::INTERACTION_FEED);
     }
 
     public function pet(): void
     {
         $this->setHappiness($this->happiness + 20);
         $this->setEnergy($this->energy - 5);
+        $this->increaseBonding(self::INTERACTION_PET);
     }
 
     public function play(): void
@@ -208,12 +241,153 @@ class Cat
         $this->setHappiness($this->happiness + 25);
         $this->setEnergy($this->energy - 20);
         $this->setHunger($this->hunger + 10);
+        $this->increaseBonding(self::INTERACTION_PLAY);
     }
 
     public function rest(): void
     {
         $this->setEnergy($this->energy + 30);
         $this->setHunger($this->hunger + 5);
+        $this->increaseBonding(self::INTERACTION_REST);
+    }
+
+    // Bonding System Methods
+    public function getBondingLevel(): int
+    {
+        return $this->bondingLevel;
+    }
+
+    public function setBondingLevel(int $level): static
+    {
+        $this->bondingLevel = max(0, min(100, $level));
+        return $this;
+    }
+
+    public function increaseBonding(string $interactionType): void
+    {
+        // Base bonding increase
+        $baseIncrease = 5;
+
+        // Bonus if this is the cat's preferred interaction
+        if ($interactionType === $this->preferredInteraction) {
+            $baseIncrease = 10; // Double bonding for preferred interaction!
+        }
+
+        $this->setBondingLevel($this->bondingLevel + $baseIncrease);
+    }
+
+    public function canBeAdopted(): bool
+    {
+        // Must have 50% bonding AND be fostered to adopt
+        return $this->bondingLevel >= 50 && $this->fostered;
+    }
+
+    public function canBeFostered(): bool
+    {
+        // Must have 30% bonding AND completed compatibility quiz to foster
+        return $this->bondingLevel >= 30 && $this->compatibilityScore !== null;
+    }
+
+    public function getBondingMilestone(): string
+    {
+        if ($this->bondingLevel >= 80) return 'Best Friends';
+        if ($this->bondingLevel >= 50) return 'Close Bond';
+        if ($this->bondingLevel >= 30) return 'Getting Closer';
+        if ($this->bondingLevel >= 10) return 'Acquaintances';
+        return 'Just Met';
+    }
+
+    public function getBondingEmoji(): string
+    {
+        if ($this->bondingLevel >= 80) return '💕';
+        if ($this->bondingLevel >= 50) return '❤️';
+        if ($this->bondingLevel >= 30) return '🧡';
+        if ($this->bondingLevel >= 10) return '💛';
+        return '🤍';
+    }
+
+    // Cat Preferences System Methods
+    public function getPreferredInteraction(): string
+    {
+        return $this->preferredInteraction;
+    }
+
+    public function setPreferredInteraction(string $interaction): static
+    {
+        $this->preferredInteraction = $interaction;
+        return $this;
+    }
+
+    public function getPreferredInteractionEmoji(): string
+    {
+        return match ($this->preferredInteraction) {
+            self::INTERACTION_FEED => '🍽️',
+            self::INTERACTION_PET => '🤗',
+            self::INTERACTION_PLAY => '🧶',
+            self::INTERACTION_REST => '😴',
+            default => '❓',
+        };
+    }
+
+    public function getPreferredInteractionLabel(): string
+    {
+        return match ($this->preferredInteraction) {
+            self::INTERACTION_FEED => 'Being fed',
+            self::INTERACTION_PET => 'Being petted',
+            self::INTERACTION_PLAY => 'Playing',
+            self::INTERACTION_REST => 'Resting together',
+            default => 'Unknown',
+        };
+    }
+
+    // Fostering System Methods
+    public function isFostered(): bool
+    {
+        return $this->fostered;
+    }
+
+    public function setFostered(bool $fostered): static
+    {
+        $this->fostered = $fostered;
+        if ($fostered && $this->fosteredAt === null) {
+            $this->fosteredAt = new \DateTimeImmutable();
+        }
+        return $this;
+    }
+
+    public function getFosteredAt(): ?\DateTimeImmutable
+    {
+        return $this->fosteredAt;
+    }
+
+    // Compatibility Quiz Methods
+    public function getCompatibilityScore(): ?int
+    {
+        return $this->compatibilityScore;
+    }
+
+    public function setCompatibilityScore(?int $score): static
+    {
+        $this->compatibilityScore = $score !== null ? max(0, min(100, $score)) : null;
+        return $this;
+    }
+
+    public function getCompatibilityLabel(): string
+    {
+        if ($this->compatibilityScore === null) return 'Not tested';
+        if ($this->compatibilityScore >= 80) return 'Perfect Match!';
+        if ($this->compatibilityScore >= 60) return 'Great Match';
+        if ($this->compatibilityScore >= 40) return 'Good Match';
+        return 'Could Work';
+    }
+
+    public function getCompatibilityEmoji(): string
+    {
+        if ($this->compatibilityScore === null) return '❓';
+        if ($this->compatibilityScore >= 80) return '🌟';
+        if ($this->compatibilityScore >= 60) return '⭐';
+        if ($this->compatibilityScore >= 40) return '👍';
+        return '🤔';
     }
 
     private function updateMood(): void

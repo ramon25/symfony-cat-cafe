@@ -17,6 +17,7 @@ class CatFixtures extends Fixture
                 'age' => 3,
                 'color' => 'Orange',
                 'description' => 'A gentle giant with a fluffy tail. Whiskers loves to cuddle and will follow you around the cafe.',
+                'preferredInteraction' => Cat::INTERACTION_PET,
             ],
             [
                 'name' => 'Luna',
@@ -24,6 +25,7 @@ class CatFixtures extends Fixture
                 'age' => 2,
                 'color' => 'Cream',
                 'description' => 'Elegant and chatty! Luna has beautiful blue eyes and loves to have conversations with visitors.',
+                'preferredInteraction' => Cat::INTERACTION_PLAY,
             ],
             [
                 'name' => 'Shadow',
@@ -31,6 +33,7 @@ class CatFixtures extends Fixture
                 'age' => 4,
                 'color' => 'Black',
                 'description' => 'A mysterious beauty who warms up to people over time. Shadow is incredibly loyal once you gain his trust.',
+                'preferredInteraction' => Cat::INTERACTION_REST,
             ],
             [
                 'name' => 'Mochi',
@@ -38,6 +41,7 @@ class CatFixtures extends Fixture
                 'age' => 1,
                 'color' => 'Gray',
                 'description' => 'Adorable and playful! Mochi loves chasing toys and will entertain you for hours.',
+                'preferredInteraction' => Cat::INTERACTION_PLAY,
             ],
             [
                 'name' => 'Ginger',
@@ -45,6 +49,7 @@ class CatFixtures extends Fixture
                 'age' => 5,
                 'color' => 'Orange',
                 'description' => 'A dignified lady with a plush coat. Ginger enjoys lounging by the window and watching birds.',
+                'preferredInteraction' => Cat::INTERACTION_REST,
             ],
             [
                 'name' => 'Mittens',
@@ -52,6 +57,7 @@ class CatFixtures extends Fixture
                 'age' => 2,
                 'color' => 'White',
                 'description' => 'True to the breed, Mittens goes completely limp when you pick her up. She is pure fluff and love.',
+                'preferredInteraction' => Cat::INTERACTION_PET,
             ],
             [
                 'name' => 'Felix',
@@ -59,6 +65,7 @@ class CatFixtures extends Fixture
                 'age' => 3,
                 'color' => 'Tuxedo',
                 'description' => 'Always dressed to impress! Felix is a sophisticated gentleman who greets every visitor.',
+                'preferredInteraction' => Cat::INTERACTION_FEED,
             ],
             [
                 'name' => 'Cleo',
@@ -66,6 +73,7 @@ class CatFixtures extends Fixture
                 'age' => 2,
                 'color' => 'Brown',
                 'description' => 'Athletic and curious, Cleo loves to explore every corner of the cafe. She is always up for an adventure.',
+                'preferredInteraction' => Cat::INTERACTION_PLAY,
             ],
         ];
 
@@ -76,6 +84,7 @@ class CatFixtures extends Fixture
             $cat->setAge($catData['age']);
             $cat->setColor($catData['color']);
             $cat->setDescription($catData['description']);
+            $cat->setPreferredInteraction($catData['preferredInteraction']);
 
             // Randomize stats a bit
             $cat->setHunger(rand(30, 70));

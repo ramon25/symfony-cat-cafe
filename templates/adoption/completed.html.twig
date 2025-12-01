@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Congratulations! - {{ cat.name }} | Whiskers & Wonders{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto text-center">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+        <!-- Celebration Header -->
+        <div class="bg-gradient-to-r from-green-400 to-emerald-500 p-8">
+            <div class="text-6xl mb-4 animate-bounce">🎉</div>
+            <span class="text-8xl mb-4 block">{{ cat.moodEmoji }}</span>
+            <h1 class="text-4xl font-bold text-white">Congratulations!</h1>
+            <p class="text-green-100 mt-2 text-xl">{{ cat.name }} has found their forever home!</p>
+        </div>
+
+        <div class="p-8 space-y-6">
+            <!-- Adoption Certificate Style -->
+            <div class="border-4 border-double border-green-300 dark:border-green-700 rounded-xl p-6 bg-gradient-to-b from-green-50 to-white dark:from-green-900/20 dark:to-gray-800">
+                <h2 class="text-2xl font-serif text-gray-800 dark:text-white mb-4">Certificate of Adoption</h2>
+                <div class="text-lg text-gray-600 dark:text-gray-300 space-y-2">
+                    <p>This certifies that</p>
+                    <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ cat.name }}</p>
+                    <p>has been officially adopted on</p>
+                    <p class="text-xl font-medium text-gray-800 dark:text-white">{{ cat.adoptedAt|date('F j, Y') }}</p>
+                </div>
+                <div class="mt-6 pt-6 border-t border-green-200 dark:border-green-800">
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-gray-500 dark:text-gray-400">Breed</p>
+                            <p class="font-medium text-gray-800 dark:text-white">{{ cat.breed }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 dark:text-gray-400">Age</p>
+                            <p class="font-medium text-gray-800 dark:text-white">{{ cat.age }} years old</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 dark:text-gray-400">Color</p>
+                            <p class="font-medium text-gray-800 dark:text-white">{{ cat.color }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 dark:text-gray-400">Final Bond</p>
+                            <p class="font-medium text-gray-800 dark:text-white">{{ cat.bondingLevel }}% {{ cat.bondingEmoji }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if cat.compatibilityScore is not null %}
+            <div class="bg-purple-50 dark:bg-purple-900/30 rounded-xl p-4">
+                <p class="text-purple-800 dark:text-purple-200">
+                    <span class="font-bold">Compatibility Score:</span>
+                    {{ cat.compatibilityScore }}% - {{ cat.compatibilityLabel }} {{ cat.compatibilityEmoji }}
+                </p>
+            </div>
+            {% endif %}
+
+            <div class="space-y-4 pt-4">
+                <a href="{{ path('app_adoptions') }}" class="block w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 px-6 rounded-xl transition-all text-lg shadow-lg hover:shadow-xl">
+                    View All Happy Adoptions
+                </a>
+                <a href="{{ path('app_home') }}" class="block w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-4 px-6 rounded-xl transition-all text-lg">
+                    Meet More Cats
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

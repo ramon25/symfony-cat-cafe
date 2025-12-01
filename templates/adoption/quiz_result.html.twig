@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Quiz Results - {{ cat.name }} | Whiskers & Wonders{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <!-- Achievement Popup -->
+    {% if newAchievements|length > 0 %}
+    <div class="mb-6 space-y-3">
+        {% for achievement in newAchievements %}
+        <div class="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl p-4 shadow-lg animate-pulse">
+            <div class="flex items-center text-white">
+                <span class="text-4xl mr-4">{{ achievement.emoji }}</span>
+                <div>
+                    <p class="text-sm font-medium opacity-90">Achievement Unlocked!</p>
+                    <p class="text-xl font-bold">{{ achievement.name }}</p>
+                    <p class="text-sm opacity-90">+{{ achievement.points }} points</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+        <!-- Header with Score -->
+        <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-8 text-center">
+            <span class="text-6xl mb-4 block">{{ cat.moodEmoji }}</span>
+            <h1 class="text-3xl font-bold text-white mb-2">Compatibility Results</h1>
+
+            <!-- Score Circle -->
+            <div class="inline-flex items-center justify-center w-32 h-32 rounded-full bg-white/20 backdrop-blur mt-4">
+                <div class="text-center">
+                    <p class="text-5xl font-bold text-white">{{ score }}%</p>
+                    <p class="text-purple-100 text-sm">Match</p>
+                </div>
+            </div>
+
+            <p class="text-purple-100 mt-4 text-lg">{{ cat.compatibilityLabel }}</p>
+        </div>
+
+        <div class="p-6 space-y-6">
+            <!-- Compatibility Message -->
+            <div class="bg-purple-50 dark:bg-purple-900/30 rounded-xl p-6 text-center">
+                <p class="text-xl text-purple-800 dark:text-purple-200">{{ message }}</p>
+            </div>
+
+            <!-- Foster Requirements -->
+            <div class="border dark:border-gray-700 rounded-xl p-6">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center">
+                    <span class="text-2xl mr-2">🏡</span>
+                    Foster Requirements
+                </h3>
+
+                <div class="space-y-4">
+                    {% for key, req in fosterRequirements %}
+                    <div class="flex items-center justify-between p-4 rounded-lg {{ req.met ? 'bg-green-50 dark:bg-green-900/30' : 'bg-gray-50 dark:bg-gray-700/50' }}">
+                        <div class="flex items-center">
+                            <span class="text-2xl mr-3">{{ req.emoji }}</span>
+                            <div>
+                                <p class="font-medium text-gray-800 dark:text-white">{{ req.label }}</p>
+                                {% if req.current is defined %}
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    Current: {{ req.current }}% / {{ req.required }}% needed
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if req.met %}
+                        <span class="text-green-600 dark:text-green-400 font-bold">Complete!</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="space-y-4">
+                {% if canFoster %}
+                <form action="{{ path('app_cat_foster', {id: cat.id}) }}" method="POST">
+                    <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 px-6 rounded-xl transition-all text-lg flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl">
+                        <span class="text-2xl">🏡</span>
+                        <span>Start Fostering {{ cat.name }}!</span>
+                    </button>
+                </form>
+                {% else %}
+                <div class="bg-orange-50 dark:bg-orange-900/30 rounded-xl p-4 text-center">
+                    <p class="text-orange-800 dark:text-orange-200">
+                        <span class="font-bold">Keep bonding!</span> Spend more time with {{ cat.name }} to unlock fostering.
+                    </p>
+                </div>
+                {% endif %}
+
+                <a href="{{ path('app_cat_show', {id: cat.id}) }}" class="block w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-4 px-6 rounded-xl transition-all text-lg text-center">
+                    Back to {{ cat.name }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
