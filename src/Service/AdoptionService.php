@@ -268,7 +268,7 @@ class AdoptionService
     {
         $requirements = [];
 
-        // Bonding requirement
+        // Bonding requirement (50% minimum for adoption)
         $bondingLevel = $bonding?->getBondingLevel() ?? 0;
         $bondingMet = $bondingLevel >= 50;
         $requirements['bonding'] = [
@@ -279,12 +279,14 @@ class AdoptionService
             'emoji' => $bondingMet ? "\u{2705}" : "\u{2764}\u{FE0F}", // ✅ : ❤️
         ];
 
-        // Fostering requirement
-        $fosterMet = $cat->isFostered();
+        // Fostering requirement - user must be actively fostering this cat
+        $user = $bonding?->getUser();
+        $isFostered = $cat->isFostered();
+        $isUserFostering = $isFostered && $cat->isOwnedBy($user);
         $requirements['foster'] = [
             'label' => 'Complete foster trial period',
-            'met' => $fosterMet,
-            'emoji' => $fosterMet ? "\u{2705}" : "\u{1F3E1}", // ✅ : 🏡
+            'met' => $isUserFostering,
+            'emoji' => $isUserFostering ? "\u{2705}" : "\u{1F3E1}", // ✅ : 🏡
         ];
 
         return $requirements;
