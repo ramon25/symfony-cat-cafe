@@ -229,11 +229,31 @@ class Cat
         $this->increaseBonding(self::INTERACTION_FEED);
     }
 
+    /**
+     * Check if feeding would have any effect on the cat's stats.
+     * Feed decreases hunger by 30, increases happiness by 10, increases energy by 5.
+     */
+    public function canFeed(): bool
+    {
+        // Can feed if any stat would change
+        return $this->hunger > 0 || $this->happiness < 100 || $this->energy < 100;
+    }
+
     public function pet(): void
     {
         $this->setHappiness($this->happiness + 20);
         $this->setEnergy($this->energy - 5);
         $this->increaseBonding(self::INTERACTION_PET);
+    }
+
+    /**
+     * Check if petting would have any effect on the cat's stats.
+     * Pet increases happiness by 20, decreases energy by 5.
+     */
+    public function canPet(): bool
+    {
+        // Can pet if any stat would change
+        return $this->happiness < 100 || $this->energy > 0;
     }
 
     public function play(): void
@@ -244,11 +264,31 @@ class Cat
         $this->increaseBonding(self::INTERACTION_PLAY);
     }
 
+    /**
+     * Check if playing would have any effect on the cat's stats.
+     * Play increases happiness by 25, decreases energy by 20, increases hunger by 10.
+     */
+    public function canPlay(): bool
+    {
+        // Can play if any stat would change
+        return $this->happiness < 100 || $this->energy > 0 || $this->hunger < 100;
+    }
+
     public function rest(): void
     {
         $this->setEnergy($this->energy + 30);
         $this->setHunger($this->hunger + 5);
         $this->increaseBonding(self::INTERACTION_REST);
+    }
+
+    /**
+     * Check if resting would have any effect on the cat's stats.
+     * Rest increases energy by 30, increases hunger by 5.
+     */
+    public function canRest(): bool
+    {
+        // Can rest if any stat would change
+        return $this->energy < 100 || $this->hunger < 100;
     }
 
     // Bonding System Methods
