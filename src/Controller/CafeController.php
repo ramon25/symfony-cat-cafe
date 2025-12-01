@@ -272,4 +272,33 @@ class CafeController extends AbstractController
 
         return $this->redirectToRoute('app_home');
     }
+
+    #[Route('/api/cats/stats', name: 'app_api_cats_stats', methods: ['GET'])]
+    public function apiCatsStats(): JsonResponse
+    {
+        $cats = $this->catRepository->findAvailable();
+        $hungryCats = $this->catRepository->findHungryCats();
+        $adoptedCount = $this->catRepository->countAdopted();
+
+        $catsData = array_map(fn(Cat $cat) => [
+            'id' => $cat->getId(),
+            'name' => $cat->getName(),
+            'hunger' => $cat->getHunger(),
+            'happiness' => $cat->getHappiness(),
+            'energy' => $cat->getEnergy(),
+            'mood' => $cat->getMood(),
+            'moodEmoji' => $cat->getMoodEmoji(),
+        ], $cats);
+
+        return new JsonResponse([
+            'success' => true,
+            'cats' => $catsData,
+            'summary' => [
+                'availableCount' => count($cats),
+                'adoptedCount' => $adoptedCount,
+                'hungryCount' => count($hungryCats),
+            ],
+            'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
+        ]);
+    }
 }

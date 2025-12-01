@@ -83,6 +83,13 @@ class CatInteraction
         }
     }
 
+    #[LiveAction]
+    public function clearMessage(): void
+    {
+        $this->lastAction = '';
+        $this->actionMessage = '';
+    }
+
     public function getHungerBarColor(): string
     {
         $cat = $this->getCat();

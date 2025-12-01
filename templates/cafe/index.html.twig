@@ -3,7 +3,10 @@
 {% block title %}Our Cats - Whiskers & Wonders Cat Cafe{% endblock %}
 
 {% block body %}
-<div class="space-y-8">
+<div class="space-y-8"
+     data-controller="live-stats"
+     data-live-stats-url-value="{{ path('app_api_cats_stats') }}"
+     data-live-stats-interval-value="10000">
     <!-- Hero Section -->
     <div class="text-center py-8">
         <h1 class="text-4xl font-bold text-gray-800 dark:text-white mb-4">Welcome to Whiskers & Wonders! 🐾</h1>
@@ -15,23 +18,37 @@
 
     <!-- Stats Bar -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 transition-colors duration-300">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Live updates</span>
+                <span class="text-xs text-gray-400 dark:text-gray-500">Last updated: <span data-live-stats-target="lastUpdated">now</span></span>
+            </div>
+            <button type="button"
+                    data-action="live-stats#refresh"
+                    class="text-sm text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Refresh
+            </button>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div class="p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
-                <p class="text-3xl font-bold text-orange-600 dark:text-orange-400">{{ cats|length }}</p>
+                <p class="text-3xl font-bold text-orange-600 dark:text-orange-400 transition-transform duration-300" data-live-stats-target="availableCount">{{ cats|length }}</p>
                 <p class="text-gray-600 dark:text-gray-300">Available Cats</p>
             </div>
             <div class="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
-                <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ adoptedCount }}</p>
+                <p class="text-3xl font-bold text-green-600 dark:text-green-400 transition-transform duration-300" data-live-stats-target="adoptedCount">{{ adoptedCount }}</p>
                 <p class="text-gray-600 dark:text-gray-300">Happy Adoptions</p>
             </div>
             <div class="p-4 bg-red-50 dark:bg-red-900/30 rounded-lg">
-                <p class="text-3xl font-bold text-red-600 dark:text-red-400">{{ hungryCats|length }}</p>
+                <p class="text-3xl font-bold text-red-600 dark:text-red-400 transition-transform duration-300" data-live-stats-target="hungryCount">{{ hungryCats|length }}</p>
                 <p class="text-gray-600 dark:text-gray-300">Hungry Cats 🍽️</p>
             </div>
         </div>
 
-        {% if hungryCats|length > 0 %}
-        <div class="mt-4 flex justify-center">
+        <div class="mt-4 flex justify-center {{ hungryCats|length == 0 ? 'hidden' : '' }}" data-live-stats-target="feedAllButton">
             <form action="{{ path('app_feed_all') }}" method="POST">
                 <button type="submit" class="bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-full transition-colors flex items-center space-x-2">
                     <span>🍽️</span>
@@ -39,14 +56,13 @@
                 </button>
             </form>
         </div>
-        {% endif %}
     </div>
 
     <!-- Cat Grid -->
     {% if cats|length > 0 %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for cat in cats %}
-        <div class="cat-card bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
+        <div class="cat-card bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300" data-cat-id="{{ cat.id }}">
             <!-- Cat Header -->
             <div class="bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-600 dark:to-amber-600 p-4">
                 <div class="flex justify-between items-start">
@@ -54,7 +70,7 @@
                         <h3 class="text-2xl font-bold text-white">{{ cat.name }}</h3>
                         <p class="text-orange-100">{{ cat.breed }}</p>
                     </div>
-                    <span class="text-4xl">{{ cat.moodEmoji }}</span>
+                    <span class="text-4xl transition-transform duration-300" data-stat="moodEmoji">{{ cat.moodEmoji }}</span>
                 </div>
             </div>
 
@@ -70,28 +86,28 @@
                     <div>
                         <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
                             <span>Hunger</span>
-                            <span>{{ cat.hunger }}%</span>
+                            <span class="transition-all duration-300" data-stat="hunger-value">{{ cat.hunger }}%</span>
                         </div>
                         <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div class="stat-bar bg-red-400 rounded-full h-2" style="width: {{ cat.hunger }}%"></div>
+                            <div class="stat-bar bg-red-400 rounded-full h-2 transition-all duration-500" data-stat="hunger-bar" style="width: {{ cat.hunger }}%"></div>
                         </div>
                     </div>
                     <div>
                         <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
                             <span>Happiness</span>
-                            <span>{{ cat.happiness }}%</span>
+                            <span class="transition-all duration-300" data-stat="happiness-value">{{ cat.happiness }}%</span>
                         </div>
                         <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div class="stat-bar bg-green-400 rounded-full h-2" style="width: {{ cat.happiness }}%"></div>
+                            <div class="stat-bar bg-green-400 rounded-full h-2 transition-all duration-500" data-stat="happiness-bar" style="width: {{ cat.happiness }}%"></div>
                         </div>
                     </div>
                     <div>
                         <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
                             <span>Energy</span>
-                            <span>{{ cat.energy }}%</span>
+                            <span class="transition-all duration-300" data-stat="energy-value">{{ cat.energy }}%</span>
                         </div>
                         <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div class="stat-bar bg-blue-400 rounded-full h-2" style="width: {{ cat.energy }}%"></div>
+                            <div class="stat-bar bg-blue-400 rounded-full h-2 transition-all duration-500" data-stat="energy-bar" style="width: {{ cat.energy }}%"></div>
                         </div>
                     </div>
                 </div>
@@ -99,7 +115,7 @@
                 <!-- Mood -->
                 <div class="text-center py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <span class="text-sm text-gray-600 dark:text-gray-300">Feeling: </span>
-                    <span class="font-semibold capitalize text-gray-800 dark:text-white">{{ cat.mood }}</span>
+                    <span class="font-semibold capitalize text-gray-800 dark:text-white" data-stat="mood">{{ cat.mood }}</span>
                 </div>
 
                 <!-- Action Button -->
