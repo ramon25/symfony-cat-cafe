@@ -98,7 +98,7 @@
                                     <!-- Bonding Message -->
                                     <div class="bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg p-3">
                                         <p class="text-sm text-gray-600 dark:text-gray-300">
-                                            <span class="font-medium text-purple-600 dark:text-purple-400">{{ cat.bondingEmoji }} {{ cat.name }} says:</span>
+                                            <span class="font-medium text-purple-600 dark:text-purple-400">{{ bonding ? bonding.bondingEmoji : '🤍' }} {{ cat.name }} says:</span>
                                             <span data-ai-thought-target="bondingMessage" class="italic"></span>
                                         </p>
                                     </div>
@@ -369,7 +369,7 @@
 
                 <!-- Quiz & Journey Buttons -->
                 <div class="grid grid-cols-2 gap-3">
-                    {% if cat.compatibilityScore is null %}
+                    {% if bonding is null or bonding.compatibilityScore is null %}
                     <a href="{{ path('app_cat_quiz', {id: cat.id}) }}"
                        class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl">
                         <span class="text-xl">📝</span>
@@ -378,8 +378,8 @@
                     {% else %}
                     <a href="{{ path('app_cat_quiz_result', {id: cat.id}) }}"
                        class="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 text-purple-700 dark:text-purple-300 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center space-x-2 border border-purple-200 dark:border-purple-700">
-                        <span class="text-xl">{{ cat.compatibilityEmoji }}</span>
-                        <span>{{ cat.compatibilityScore }}% Match</span>
+                        <span class="text-xl">{{ bonding.compatibilityEmoji }}</span>
+                        <span>{{ bonding.compatibilityScore }}% Match</span>
                     </a>
                     {% endif %}
 
@@ -391,7 +391,7 @@
                 </div>
 
                 <!-- Main Adopt Button -->
-                {% if cat.canBeAdopted %}
+                {% if bonding and bonding.canAdopt %}
                 <form action="{{ path('app_cat_adopt_new', {id: cat.id}) }}" method="POST">
                     <button type="submit"
                             onclick="return confirm('Are you ready to give {{ cat.name }} their forever home? This is wonderful!')"

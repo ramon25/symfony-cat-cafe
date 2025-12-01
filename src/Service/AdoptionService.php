@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Cat;
+use App\Entity\CatBonding;
 
 class AdoptionService
 {
@@ -106,7 +107,7 @@ class AdoptionService
         return self::QUIZ_QUESTIONS;
     }
 
-    public function calculateCompatibility(Cat $cat, array $answers): int
+    public function calculateCompatibility(Cat $cat, array $answers, ?CatBonding $bonding = null): int
     {
         $catTraits = $this->getCatTraits($cat);
         $userTraits = $this->getUserTraitsFromAnswers($answers);
@@ -125,8 +126,9 @@ class AdoptionService
         // Base compatibility from trait matching
         $traitScore = $totalWeight > 0 ? ($matchCount / $totalWeight) * 60 : 30;
 
-        // Bonus points based on bonding level (up to 20 points)
-        $bondingBonus = ($cat->getBondingLevel() / 100) * 20;
+        // Bonus points based on user-specific bonding level (up to 20 points)
+        $bondingLevel = $bonding?->getBondingLevel() ?? 0;
+        $bondingBonus = ($bondingLevel / 100) * 20;
 
         // Bonus for preferred interaction alignment (up to 20 points)
         $preferenceBonus = $this->calculatePreferenceBonus($cat, $answers);
@@ -236,43 +238,45 @@ class AdoptionService
         return "A unique pairing! Love knows no compatibility score!";
     }
 
-    public function getFosteringRequirements(Cat $cat): array
+    public function getFosteringRequirements(Cat $cat, ?CatBonding $bonding = null): array
     {
         $requirements = [];
 
         // Bonding requirement
-        $bondingMet = $cat->getBondingLevel() >= 30;
+        $bondingLevel = $bonding?->getBondingLevel() ?? 0;
+        $bondingMet = $bondingLevel >= 30;
         $requirements['bonding'] = [
             'label' => 'Build a bond (30%+ bonding level)',
             'met' => $bondingMet,
-            'current' => $cat->getBondingLevel(),
+            'current' => $bondingLevel,
             'required' => 30,
-            'emoji' => $bondingMet ? '✅' : '💛',
+            'emoji' => $bondingMet ? "\u{2705}" : "\u{1F49B}", // ✅ : 💛
         ];
 
         // Quiz requirement
-        $quizMet = $cat->getCompatibilityScore() !== null;
+        $quizMet = $bonding?->getCompatibilityScore() !== null;
         $requirements['quiz'] = [
             'label' => 'Complete compatibility quiz',
             'met' => $quizMet,
-            'emoji' => $quizMet ? '✅' : '📝',
+            'emoji' => $quizMet ? "\u{2705}" : "\u{1F4DD}", // ✅ : 📝
         ];
 
         return $requirements;
     }
 
-    public function getAdoptionRequirements(Cat $cat): array
+    public function getAdoptionRequirements(Cat $cat, ?CatBonding $bonding = null): array
     {
         $requirements = [];
 
         // Bonding requirement
-        $bondingMet = $cat->getBondingLevel() >= 50;
+        $bondingLevel = $bonding?->getBondingLevel() ?? 0;
+        $bondingMet = $bondingLevel >= 50;
         $requirements['bonding'] = [
             'label' => 'Strong bond (50%+ bonding level)',
             'met' => $bondingMet,
-            'current' => $cat->getBondingLevel(),
+            'current' => $bondingLevel,
             'required' => 50,
-            'emoji' => $bondingMet ? '✅' : '❤️',
+            'emoji' => $bondingMet ? "\u{2705}" : "\u{2764}\u{FE0F}", // ✅ : ❤️
         ];
 
         // Fostering requirement
@@ -280,7 +284,7 @@ class AdoptionService
         $requirements['foster'] = [
             'label' => 'Complete foster trial period',
             'met' => $fosterMet,
-            'emoji' => $fosterMet ? '✅' : '🏡',
+            'emoji' => $fosterMet ? "\u{2705}" : "\u{1F3E1}", // ✅ : 🏡
         ];
 
         return $requirements;
