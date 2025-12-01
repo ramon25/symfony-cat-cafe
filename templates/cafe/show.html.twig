@@ -133,9 +133,50 @@
                     <span class="text-2xl mr-2">✨</span>
                     AI Personality Profile
                     <span class="ml-2 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full">AI Powered</span>
+                    {% if cat.hasAiContent %}
+                    <span class="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Saved</span>
+                    {% endif %}
                 </h3>
 
                 <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-6">
+                    {% if cat.aiPersonalityProfile %}
+                    <!-- Pre-loaded cached content -->
+                    <div class="space-y-4">
+                        <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4">
+                            <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ cat.aiPersonalityProfile }}</p>
+                        </div>
+
+                        {% if cat.aiFunFacts %}
+                        <div>
+                            <h4 class="font-bold text-gray-800 dark:text-white text-sm mb-2 flex items-center">
+                                <span class="mr-2">🎯</span> Fun Facts
+                            </h4>
+                            <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                                {% for fact in cat.aiFunFacts %}
+                                <li class="flex items-start gap-2"><span class="text-purple-500">*</span><span>{{ fact }}</span></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        {% if cat.aiGeneratedAt %}
+                        <p class="text-xs text-gray-400 dark:text-gray-500 text-center">
+                            Generated: {{ cat.aiGeneratedAt|date('M j, Y g:i A') }}
+                        </p>
+                        {% endif %}
+
+                        <!-- Regenerate Button -->
+                        <div class="text-center">
+                            <button type="button"
+                                    data-ai-personality-target="button"
+                                    data-action="click->ai-personality#regenerate"
+                                    class="text-sm text-purple-600 dark:text-purple-400 hover:underline flex items-center justify-center gap-1 mx-auto">
+                                <span>🔄</span>
+                                <span>Regenerate Profile</span>
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
                     <!-- Loading State -->
                     <div data-ai-personality-target="loading" class="hidden">
                         <div class="flex items-center justify-center py-8">
@@ -149,19 +190,30 @@
                         </div>
                     </div>
 
-                    <!-- Content -->
+                    <!-- Content (for dynamically loaded) -->
                     <div data-ai-personality-target="content" class="hidden space-y-4">
                         <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4">
                             <p data-ai-personality-target="profile" class="text-gray-700 dark:text-gray-300 whitespace-pre-line"></p>
                         </div>
 
-                        <!-- Fun Facts -->
                         <div>
                             <h4 class="font-bold text-gray-800 dark:text-white text-sm mb-2 flex items-center">
                                 <span class="mr-2">🎯</span> Fun Facts
                             </h4>
                             <ul data-ai-personality-target="facts" class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                             </ul>
+                        </div>
+
+                        <p data-ai-personality-target="generatedAt" class="hidden text-xs text-gray-400 dark:text-gray-500 text-center"></p>
+
+                        <div class="text-center">
+                            <button type="button"
+                                    data-ai-personality-target="button"
+                                    data-action="click->ai-personality#regenerate"
+                                    class="text-sm text-purple-600 dark:text-purple-400 hover:underline flex items-center justify-center gap-1 mx-auto">
+                                <span>🔄</span>
+                                <span>Regenerate Profile</span>
+                            </button>
                         </div>
                     </div>
 
@@ -172,8 +224,8 @@
                         </div>
                     </div>
 
-                    <!-- Generate Button -->
-                    <div class="mt-4 text-center">
+                    <!-- Generate Button (initial) -->
+                    <div class="text-center">
                         <button type="button"
                                 data-ai-personality-target="button"
                                 data-action="click->ai-personality#loadPersonality"
@@ -182,6 +234,7 @@
                             <span>Generate AI Profile</span>
                         </button>
                     </div>
+                    {% endif %}
                 </div>
             </div>
 

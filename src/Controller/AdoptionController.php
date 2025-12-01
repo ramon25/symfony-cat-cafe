@@ -260,30 +260,39 @@ class AdoptionController extends AbstractController
     }
 
     #[Route('/api/cat/{id}/personality', name: 'app_api_cat_personality', methods: ['GET'])]
-    public function apiPersonality(Cat $cat): JsonResponse
+    public function apiPersonality(Cat $cat, Request $request): JsonResponse
     {
-        $profile = $this->personalityService->generatePersonalityProfile($cat);
-        $funFacts = $this->personalityService->generateFunFacts($cat);
+        $forceRegenerate = $request->query->getBoolean('regenerate', false);
+
+        $profile = $this->personalityService->getPersonalityProfile($cat, $forceRegenerate);
+        $funFacts = $this->personalityService->getFunFacts($cat, $forceRegenerate);
 
         return new JsonResponse([
             'profile' => $profile,
             'funFacts' => $funFacts,
+            'cached' => !$forceRegenerate && $cat->getAiGeneratedAt() !== null,
+            'generatedAt' => $cat->getAiGeneratedAt()?->format('Y-m-d H:i:s'),
         ]);
     }
 
     #[Route('/api/cat/{id}/backstory', name: 'app_api_cat_backstory', methods: ['GET'])]
-    public function apiBackstory(Cat $cat): JsonResponse
+    public function apiBackstory(Cat $cat, Request $request): JsonResponse
     {
-        $backstory = $this->personalityService->generateBackstory($cat);
+        $forceRegenerate = $request->query->getBoolean('regenerate', false);
+
+        $backstory = $this->personalityService->getBackstory($cat, $forceRegenerate);
 
         return new JsonResponse([
             'backstory' => $backstory,
+            'cached' => !$forceRegenerate && $cat->getAiGeneratedAt() !== null,
+            'generatedAt' => $cat->getAiGeneratedAt()?->format('Y-m-d H:i:s'),
         ]);
     }
 
     #[Route('/api/cat/{id}/thought', name: 'app_api_cat_thought', methods: ['GET'])]
     public function apiThought(Cat $cat): JsonResponse
     {
+        // Thoughts and bonding messages are always fresh (based on current state)
         $thought = $this->personalityService->generateCatThought($cat);
         $bondingMessage = $this->personalityService->generateBondingMessage($cat, $cat->getBondingLevel());
 
@@ -292,6 +301,35 @@ class AdoptionController extends AbstractController
             'bondingMessage' => $bondingMessage,
             'mood' => $cat->getMood(),
             'moodEmoji' => $cat->getMoodEmoji(),
+        ]);
+    }
+
+    #[Route('/api/cat/{id}/ai-content/regenerate', name: 'app_api_cat_ai_regenerate', methods: ['POST'])]
+    public function apiRegenerateAiContent(Cat $cat): JsonResponse
+    {
+        // Generate all AI content and save to database
+        $this->personalityService->generateAllContent($cat);
+
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'AI content regenerated successfully',
+            'profile' => $cat->getAiPersonalityProfile(),
+            'backstory' => $cat->getAiBackstory(),
+            'funFacts' => $cat->getAiFunFacts(),
+            'generatedAt' => $cat->getAiGeneratedAt()?->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    #[Route('/api/cat/{id}/ai-content', name: 'app_api_cat_ai_content', methods: ['GET'])]
+    public function apiAiContent(Cat $cat): JsonResponse
+    {
+        // Return cached AI content without generating new
+        return new JsonResponse([
+            'hasContent' => $cat->hasAiContent(),
+            'profile' => $cat->getAiPersonalityProfile(),
+            'backstory' => $cat->getAiBackstory(),
+            'funFacts' => $cat->getAiFunFacts(),
+            'generatedAt' => $cat->getAiGeneratedAt()?->format('Y-m-d H:i:s'),
         ]);
     }
 }

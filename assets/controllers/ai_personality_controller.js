@@ -4,12 +4,13 @@ import { Controller } from '@hotwired/stimulus';
  * AI Personality Controller
  *
  * Fetches and displays AI-generated cat personality profiles and fun facts.
+ * Supports database caching and regeneration.
  */
 export default class extends Controller {
-    static targets = ['loading', 'content', 'profile', 'facts', 'error', 'button'];
+    static targets = ['loading', 'content', 'profile', 'facts', 'error', 'button', 'cachedBadge', 'generatedAt'];
     static values = { url: String };
 
-    async loadPersonality(event) {
+    async loadPersonality(event, regenerate = false) {
         if (event) event.preventDefault();
 
         // Show loading, hide others
@@ -23,7 +24,8 @@ export default class extends Controller {
         }
 
         try {
-            const response = await fetch(this.urlValue);
+            const url = regenerate ? `${this.urlValue}?regenerate=1` : this.urlValue;
+            const response = await fetch(url);
             const data = await response.json();
 
             if (data.profile) {
@@ -34,6 +36,21 @@ export default class extends Controller {
                     this.factsTarget.innerHTML = data.funFacts
                         .map(fact => `<li class="flex items-start gap-2"><span class="text-purple-500">*</span><span>${fact}</span></li>`)
                         .join('');
+                }
+
+                // Show cached badge if content was cached
+                if (this.hasCachedBadgeTarget) {
+                    if (data.cached) {
+                        this.cachedBadgeTarget.classList.remove('hidden');
+                    } else {
+                        this.cachedBadgeTarget.classList.add('hidden');
+                    }
+                }
+
+                // Show generated timestamp
+                if (this.hasGeneratedAtTarget && data.generatedAt) {
+                    this.generatedAtTarget.textContent = `Generated: ${data.generatedAt}`;
+                    this.generatedAtTarget.classList.remove('hidden');
                 }
 
                 this.loadingTarget.classList.add('hidden');
@@ -50,6 +67,10 @@ export default class extends Controller {
                 this.buttonTarget.innerHTML = '<span class="text-lg">🔄</span><span>Regenerate</span>';
             }
         }
+    }
+
+    regenerate(event) {
+        this.loadPersonality(event, true);
     }
 
     showError() {

@@ -85,6 +85,19 @@ class Cat
     #[ORM\Column(nullable: true)]
     private ?int $compatibilityScore = null;
 
+    // AI-generated content (cached in database)
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $aiPersonalityProfile = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $aiBackstory = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $aiFunFacts = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $aiGeneratedAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -428,6 +441,65 @@ class Cat
         if ($this->compatibilityScore >= 60) return '⭐';
         if ($this->compatibilityScore >= 40) return '👍';
         return '🤔';
+    }
+
+    // AI-Generated Content Methods
+    public function getAiPersonalityProfile(): ?string
+    {
+        return $this->aiPersonalityProfile;
+    }
+
+    public function setAiPersonalityProfile(?string $profile): static
+    {
+        $this->aiPersonalityProfile = $profile;
+        return $this;
+    }
+
+    public function getAiBackstory(): ?string
+    {
+        return $this->aiBackstory;
+    }
+
+    public function setAiBackstory(?string $backstory): static
+    {
+        $this->aiBackstory = $backstory;
+        return $this;
+    }
+
+    public function getAiFunFacts(): ?array
+    {
+        return $this->aiFunFacts;
+    }
+
+    public function setAiFunFacts(?array $facts): static
+    {
+        $this->aiFunFacts = $facts;
+        return $this;
+    }
+
+    public function getAiGeneratedAt(): ?\DateTimeImmutable
+    {
+        return $this->aiGeneratedAt;
+    }
+
+    public function setAiGeneratedAt(?\DateTimeImmutable $generatedAt): static
+    {
+        $this->aiGeneratedAt = $generatedAt;
+        return $this;
+    }
+
+    public function hasAiContent(): bool
+    {
+        return $this->aiPersonalityProfile !== null || $this->aiBackstory !== null;
+    }
+
+    public function clearAiContent(): static
+    {
+        $this->aiPersonalityProfile = null;
+        $this->aiBackstory = null;
+        $this->aiFunFacts = null;
+        $this->aiGeneratedAt = null;
+        return $this;
     }
 
     private function updateMood(): void
