@@ -102,6 +102,16 @@ class Cat
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $aiGeneratedAt = null;
 
+    // AI-generated website (cached in database)
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $aiWebsiteHtml = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $aiWebsiteLayout = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $aiWebsiteGeneratedAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -520,6 +530,53 @@ class Cat
         $this->aiBackstory = null;
         $this->aiFunFacts = null;
         $this->aiGeneratedAt = null;
+        return $this;
+    }
+
+    // AI-Generated Website Methods
+    public function getAiWebsiteHtml(): ?string
+    {
+        return $this->aiWebsiteHtml;
+    }
+
+    public function setAiWebsiteHtml(?string $html): static
+    {
+        $this->aiWebsiteHtml = $html;
+        return $this;
+    }
+
+    public function getAiWebsiteLayout(): ?string
+    {
+        return $this->aiWebsiteLayout;
+    }
+
+    public function setAiWebsiteLayout(?string $layout): static
+    {
+        $this->aiWebsiteLayout = $layout;
+        return $this;
+    }
+
+    public function getAiWebsiteGeneratedAt(): ?\DateTimeImmutable
+    {
+        return $this->aiWebsiteGeneratedAt;
+    }
+
+    public function setAiWebsiteGeneratedAt(?\DateTimeImmutable $generatedAt): static
+    {
+        $this->aiWebsiteGeneratedAt = $generatedAt;
+        return $this;
+    }
+
+    public function hasAiWebsite(): bool
+    {
+        return $this->aiWebsiteHtml !== null;
+    }
+
+    public function clearAiWebsite(): static
+    {
+        $this->aiWebsiteHtml = null;
+        $this->aiWebsiteLayout = null;
+        $this->aiWebsiteGeneratedAt = null;
         return $this;
     }
 

@@ -12,6 +12,7 @@ use App\Repository\ChatMessageRepository;
 use App\Service\AchievementService;
 use App\Service\CatGeneratorService;
 use App\Service\CatTherapistService;
+use App\Service\CatWebsiteGeneratorService;
 use App\Service\CatWisdomService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,6 +33,7 @@ class CafeController extends AbstractController
         private ChatMessageRepository $chatMessageRepository,
         private AchievementService $achievementService,
         private CatGeneratorService $catGeneratorService,
+        private CatWebsiteGeneratorService $websiteGeneratorService,
     ) {
     }
 
@@ -491,5 +493,52 @@ class CafeController extends AbstractController
             ],
             'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
         ]);
+    }
+
+    #[Route('/cat/{id}/website', name: 'app_cat_website', requirements: ['id' => '\d+'])]
+    public function catWebsite(Cat $cat): Response
+    {
+        // Get or generate the cat's personal website
+        $html = $this->websiteGeneratorService->getWebsite($cat);
+
+        // Return as a full HTML page (not wrapped in base template)
+        return new Response($html, 200, [
+            'Content-Type' => 'text/html; charset=UTF-8',
+        ]);
+    }
+
+    #[Route('/api/cat/{id}/website', name: 'app_api_cat_website', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function apiCatWebsite(Cat $cat): JsonResponse
+    {
+        return new JsonResponse([
+            'success' => true,
+            'catId' => $cat->getId(),
+            'catName' => $cat->getName(),
+            'hasWebsite' => $cat->hasAiWebsite(),
+            'layout' => $cat->getAiWebsiteLayout(),
+            'generatedAt' => $cat->getAiWebsiteGeneratedAt()?->format('Y-m-d H:i:s'),
+            'websiteUrl' => $this->generateUrl('app_cat_website', ['id' => $cat->getId()]),
+        ]);
+    }
+
+    #[Route('/api/cat/{id}/website/regenerate', name: 'app_api_cat_website_regenerate', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function apiCatWebsiteRegenerate(Cat $cat): JsonResponse
+    {
+        try {
+            $this->websiteGeneratorService->getWebsite($cat, forceRegenerate: true);
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => sprintf('%s\'s website has been regenerated!', $cat->getName()),
+                'layout' => $cat->getAiWebsiteLayout(),
+                'generatedAt' => $cat->getAiWebsiteGeneratedAt()?->format('Y-m-d H:i:s'),
+                'websiteUrl' => $this->generateUrl('app_cat_website', ['id' => $cat->getId()]),
+            ]);
+        } catch (\Throwable $e) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'Failed to regenerate website. Please try again!',
+            ], 500);
+        }
     }
 }
