@@ -238,6 +238,87 @@
                 </div>
             </div>
 
+            <!-- Personal Website Section -->
+            <div class="border-t dark:border-gray-700 pt-6"
+                 data-controller="cat-website"
+                 data-cat-website-regenerate-url-value="{{ path('app_api_cat_website_regenerate', {id: cat.id}) }}"
+                 data-cat-website-view-url-value="{{ path('app_cat_website', {id: cat.id}) }}">
+                <h3 class="font-bold text-gray-800 dark:text-white mb-4 flex items-center">
+                    <span class="text-2xl mr-2">🌐</span>
+                    {{ cat.name }}'s Personal Website
+                    <span class="ml-2 text-xs bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-2 py-0.5 rounded-full">AI Generated</span>
+                    {% if cat.hasAiWebsite %}
+                    <span class="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Ready</span>
+                    {% endif %}
+                </h3>
+
+                <div class="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-xl p-6">
+                    <p class="text-gray-600 dark:text-gray-300 mb-4 text-center">
+                        {{ cat.name }} has their own AI-generated personal website with a unique Tailwind CSS design!
+                    </p>
+
+                    {% if cat.hasAiWebsite %}
+                    <div class="text-center space-y-3">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            Layout: <span class="font-medium text-cyan-600 dark:text-cyan-400">{{ cat.aiWebsiteLayout }}</span>
+                            {% if cat.aiWebsiteGeneratedAt %}
+                            <span class="mx-2">•</span>
+                            Generated: {{ cat.aiWebsiteGeneratedAt|date('M j, Y g:i A') }}
+                            {% endif %}
+                        </p>
+                        <div class="flex justify-center gap-3">
+                            <a href="{{ path('app_cat_website', {id: cat.id}) }}"
+                               target="_blank"
+                               class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium py-2 px-6 rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                                <span class="text-lg">🌐</span>
+                                <span>Visit Website</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                            </a>
+                            <button type="button"
+                                    data-cat-website-target="regenerateBtn"
+                                    data-action="click->cat-website#regenerate"
+                                    class="bg-white dark:bg-gray-700 text-cyan-600 dark:text-cyan-400 font-medium py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2 border border-cyan-200 dark:border-cyan-700 hover:bg-cyan-50 dark:hover:bg-cyan-900/30">
+                                <span>🔄</span>
+                                <span>New Layout</span>
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center">
+                        <a href="{{ path('app_cat_website', {id: cat.id}) }}"
+                           target="_blank"
+                           class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium py-3 px-6 rounded-lg transition-all inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                            <span class="text-lg">✨</span>
+                            <span>Generate & View Website</span>
+                        </a>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-3">
+                            A unique website will be created with a randomly selected Tailwind layout
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Loading indicator -->
+                    <div data-cat-website-target="loading" class="hidden mt-4">
+                        <div class="flex items-center justify-center gap-2 text-cyan-500">
+                            <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span>Generating new website layout...</span>
+                        </div>
+                    </div>
+
+                    <!-- Success message -->
+                    <div data-cat-website-target="success" class="hidden mt-4">
+                        <div class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg p-3 text-center text-sm">
+                            <span class="font-medium">New website generated!</span> Refresh to see the new layout info.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Live Component: Cat Stats & Interactions -->
             {{ component('CatInteraction', { catId: cat.id }) }}
 
