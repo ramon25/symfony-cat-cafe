@@ -1,4 +1,4 @@
-<div {{ attributes }}>
+<div {{ attributes.defaults({'data-poll': 'delay(10000)|$render'}) }}>
     {% set cat = this.cat %}
 
     {% if cat %}
@@ -36,6 +36,7 @@
             <span class="text-xl">📊</span>
             Live Status
             <span class="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
+            <span class="text-xs text-gray-400 dark:text-gray-500 ml-auto">Auto-refreshes every 10s</span>
         </h3>
 
         {# Hunger Bar #}
