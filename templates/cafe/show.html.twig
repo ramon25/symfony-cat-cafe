@@ -59,46 +59,8 @@
             </div>
             {% endif %}
 
-            <!-- Stats -->
-            <div class="space-y-4">
-                <h3 class="font-bold text-gray-800">Current Status</h3>
-
-                <div>
-                    <div class="flex justify-between text-sm mb-1">
-                        <span class="flex items-center"><span class="mr-2">🍽️</span> Hunger</span>
-                        <span class="font-semibold {% if cat.hunger > 70 %}text-red-600{% else %}text-gray-600{% endif %}">{{ cat.hunger }}%</span>
-                    </div>
-                    <div class="bg-gray-200 rounded-full h-4">
-                        <div class="stat-bar bg-gradient-to-r from-red-300 to-red-500 rounded-full h-4 flex items-center justify-end pr-2"
-                             style="width: {{ cat.hunger }}%">
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="flex justify-between text-sm mb-1">
-                        <span class="flex items-center"><span class="mr-2">😊</span> Happiness</span>
-                        <span class="font-semibold {% if cat.happiness < 30 %}text-red-600{% else %}text-gray-600{% endif %}">{{ cat.happiness }}%</span>
-                    </div>
-                    <div class="bg-gray-200 rounded-full h-4">
-                        <div class="stat-bar bg-gradient-to-r from-green-300 to-green-500 rounded-full h-4"
-                             style="width: {{ cat.happiness }}%">
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="flex justify-between text-sm mb-1">
-                        <span class="flex items-center"><span class="mr-2">⚡</span> Energy</span>
-                        <span class="font-semibold {% if cat.energy < 20 %}text-red-600{% else %}text-gray-600{% endif %}">{{ cat.energy }}%</span>
-                    </div>
-                    <div class="bg-gray-200 rounded-full h-4">
-                        <div class="stat-bar bg-gradient-to-r from-blue-300 to-blue-500 rounded-full h-4"
-                             style="width: {{ cat.energy }}%">
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Live Component: Cat Stats & Interactions -->
+            {{ component('CatInteraction', { catId: cat.id }) }}
 
             <!-- Cat Fortune Cookie Section -->
             <div class="border-t pt-6" data-controller="wisdom" data-wisdom-url-value="{{ path('app_cat_wisdom', {id: cat.id}) }}">
@@ -211,46 +173,9 @@
             </div>
 
             {% if not cat.adopted %}
-            <!-- Actions -->
+            <!-- Adopt Button (separate from Live Component) -->
             <div class="border-t pt-6">
-                <h3 class="font-bold text-gray-800 mb-4">Interact with {{ cat.name }}</h3>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <form action="{{ path('app_cat_feed', {id: cat.id}) }}" method="POST">
-                        <button type="submit"
-                                class="w-full bg-red-100 hover:bg-red-200 text-red-700 font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
-                            <span class="text-xl">🍽️</span>
-                            <span>Feed</span>
-                        </button>
-                    </form>
-
-                    <form action="{{ path('app_cat_pet', {id: cat.id}) }}" method="POST">
-                        <button type="submit"
-                                class="w-full bg-pink-100 hover:bg-pink-200 text-pink-700 font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
-                            <span class="text-xl">🤗</span>
-                            <span>Pet</span>
-                        </button>
-                    </form>
-
-                    <form action="{{ path('app_cat_play', {id: cat.id}) }}" method="POST">
-                        <button type="submit"
-                                class="w-full bg-yellow-100 hover:bg-yellow-200 text-yellow-700 font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
-                            <span class="text-xl">🧶</span>
-                            <span>Play</span>
-                        </button>
-                    </form>
-
-                    <form action="{{ path('app_cat_rest', {id: cat.id}) }}" method="POST">
-                        <button type="submit"
-                                class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
-                            <span class="text-xl">😴</span>
-                            <span>Rest</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Adopt Button -->
-                <form action="{{ path('app_cat_adopt', {id: cat.id}) }}" method="POST" class="mt-6">
+                <form action="{{ path('app_cat_adopt', {id: cat.id}) }}" method="POST">
                     <button type="submit"
                             onclick="return confirm('Are you sure you want to adopt {{ cat.name }}? This is a big responsibility!')"
                             class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-4 px-6 rounded-xl transition-all text-lg flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl">
