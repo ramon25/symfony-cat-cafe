@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import { formatAiText } from '../utils/textFormatter.js';
 
 /**
  * AI Cat Therapist Controller
@@ -183,7 +184,8 @@ export default class extends Controller {
 
             const textSpan = document.createElement('span');
             textSpan.className = 'text-sm leading-relaxed';
-            textSpan.textContent = content;
+            // Apply markdown formatting (bold/italic) for AI responses
+            textSpan.innerHTML = formatAiText(content);
             contentWrapper.appendChild(textSpan);
 
             avatarWrapper.appendChild(avatar);
@@ -217,7 +219,8 @@ export default class extends Controller {
         // User message
         const textSpan = document.createElement('span');
         textSpan.className = 'text-sm leading-relaxed';
-        textSpan.textContent = content;
+        // Apply markdown formatting (bold/italic) for user messages too
+        textSpan.innerHTML = formatAiText(content);
         bubble.appendChild(textSpan);
 
         wrapper.appendChild(bubble);

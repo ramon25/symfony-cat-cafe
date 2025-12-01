@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import { formatAiText } from '../utils/textFormatter.js';
 
 /**
  * AI Personality Controller
@@ -29,12 +30,13 @@ export default class extends Controller {
             const data = await response.json();
 
             if (data.profile) {
-                this.profileTarget.textContent = data.profile;
+                // Apply markdown formatting (bold/italic) for AI-generated personality profile
+                this.profileTarget.innerHTML = formatAiText(data.profile);
 
                 // Display fun facts if available
                 if (data.funFacts && data.funFacts.length > 0 && this.hasFactsTarget) {
                     this.factsTarget.innerHTML = data.funFacts
-                        .map(fact => `<li class="flex items-start gap-2"><span class="text-purple-500">*</span><span>${fact}</span></li>`)
+                        .map(fact => `<li class="flex items-start gap-2"><span class="text-purple-500">•</span><span>${formatAiText(fact)}</span></li>`)
                         .join('');
                 }
 

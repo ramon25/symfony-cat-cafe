@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import { formatAiText } from '../utils/textFormatter.js';
 
 /**
  * AI Insights Controller
@@ -19,7 +20,8 @@ export default class extends Controller {
             const data = await response.json();
 
             if (data.insights) {
-                this.textTarget.textContent = data.insights;
+                // Apply markdown formatting (bold/italic) for AI-generated insights
+                this.textTarget.innerHTML = formatAiText(data.insights);
                 this.loadingTarget.classList.add('hidden');
                 this.contentTarget.classList.remove('hidden');
             } else {

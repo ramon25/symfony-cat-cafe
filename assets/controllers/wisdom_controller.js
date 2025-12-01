@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import { formatAiText } from '../utils/textFormatter.js';
 
 /**
  * Cat Wisdom Fortune Controller
@@ -22,12 +23,13 @@ export default class extends Controller {
 
             if (data.success) {
                 // Update the display with the fortune
-                this.prefixTarget.textContent = data.prefix;
-                this.wisdomTarget.textContent = `"${data.wisdom}"`;
+                // Apply markdown formatting (bold/italic) for AI-generated wisdom
+                this.prefixTarget.innerHTML = formatAiText(data.prefix);
+                this.wisdomTarget.innerHTML = `"${formatAiText(data.wisdom)}"`;
                 this.luckyTarget.innerHTML = `
-                    <span class="text-purple-600">Lucky Item:</span> ${data.luckyItem}
+                    <span class="text-purple-600 dark:text-purple-400">Lucky Item:</span> ${formatAiText(data.luckyItem)}
                     <span class="mx-2">|</span>
-                    <span class="text-purple-600">Lucky Number:</span> ${data.luckyNumber}
+                    <span class="text-purple-600 dark:text-purple-400">Lucky Number:</span> ${data.luckyNumber}
                 `;
                 this.emojiTarget.textContent = data.catEmoji;
 
