@@ -45,6 +45,12 @@ class CatInteraction
     {
         $cat = $this->getCat();
         if ($cat && !$cat->isAdopted()) {
+            if (!$cat->canFeed()) {
+                $this->lastAction = 'error';
+                $this->actionMessage = "{$cat->getName()} is already well-fed and content!";
+                $this->bondingMessage = '';
+                return;
+            }
             $cat->feed();
             $this->entityManager->flush();
             $this->achievementService->incrementStat('feed', $cat->getId());
@@ -61,6 +67,12 @@ class CatInteraction
     {
         $cat = $this->getCat();
         if ($cat && !$cat->isAdopted()) {
+            if (!$cat->canPet()) {
+                $this->lastAction = 'error';
+                $this->actionMessage = "{$cat->getName()} is already at maximum happiness and too tired for pets!";
+                $this->bondingMessage = '';
+                return;
+            }
             $cat->pet();
             $this->entityManager->flush();
             $this->achievementService->incrementStat('pet', $cat->getId());
@@ -77,6 +89,12 @@ class CatInteraction
     {
         $cat = $this->getCat();
         if ($cat && !$cat->isAdopted()) {
+            if (!$cat->canPlay()) {
+                $this->lastAction = 'error';
+                $this->actionMessage = "{$cat->getName()} is already at maximum happiness, too tired, and too full to play!";
+                $this->bondingMessage = '';
+                return;
+            }
             $cat->play();
             $this->entityManager->flush();
             $this->achievementService->incrementStat('play', $cat->getId());
@@ -93,6 +111,12 @@ class CatInteraction
     {
         $cat = $this->getCat();
         if ($cat && !$cat->isAdopted()) {
+            if (!$cat->canRest()) {
+                $this->lastAction = 'error';
+                $this->actionMessage = "{$cat->getName()} already has full energy and is too full to rest!";
+                $this->bondingMessage = '';
+                return;
+            }
             $cat->rest();
             $this->entityManager->flush();
             $this->achievementService->incrementStat('rest', $cat->getId());
