@@ -2,6 +2,11 @@
 
 namespace App\Service;
 
+use App\Entity\User;
+use App\Entity\UserAchievement;
+use App\Repository\UserAchievementRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class AchievementService
@@ -93,11 +98,12 @@ class AchievementService
         ],
     ];
 
-    private RequestStack $requestStack;
-
-    public function __construct(RequestStack $requestStack)
-    {
-        $this->requestStack = $requestStack;
+    public function __construct(
+        private RequestStack $requestStack,
+        private Security $security,
+        private EntityManagerInterface $entityManager,
+        private UserAchievementRepository $userAchievementRepository,
+    ) {
     }
 
     private function getSession(): ?\Symfony\Component\HttpFoundation\Session\SessionInterface
@@ -105,14 +111,38 @@ class AchievementService
         return $this->requestStack->getSession();
     }
 
+    private function getUser(): ?User
+    {
+        $user = $this->security->getUser();
+        return $user instanceof User ? $user : null;
+    }
+
     public function getUnlockedAchievements(): array
     {
+        $user = $this->getUser();
+
+        if ($user) {
+            // For authenticated users, get from database
+            $achievements = [];
+            foreach ($user->getAchievements() as $achievement) {
+                $achievements[] = $achievement->getAchievementId();
+            }
+            return $achievements;
+        }
+
+        // For anonymous users, fall back to session
         $session = $this->getSession();
         return $session ? $session->get('achievements', []) : [];
     }
 
     public function hasAchievement(string $achievementId): bool
     {
+        $user = $this->getUser();
+
+        if ($user) {
+            return $user->hasAchievement($achievementId);
+        }
+
         return in_array($achievementId, $this->getUnlockedAchievements());
     }
 
@@ -126,6 +156,32 @@ class AchievementService
             return false; // Already unlocked
         }
 
+        $user = $this->getUser();
+        $achievementData = self::ACHIEVEMENTS[$achievementId];
+
+        if ($user) {
+            // For authenticated users, persist to database
+            $achievement = new UserAchievement();
+            $achievement->setUser($user);
+            $achievement->setAchievementId($achievementId);
+            $achievement->setName($achievementData['name']);
+            $achievement->setPoints($achievementData['points']);
+
+            $this->entityManager->persist($achievement);
+            $this->entityManager->flush();
+
+            // Store newly unlocked for flash display
+            $session = $this->getSession();
+            if ($session) {
+                $newlyUnlocked = $session->get('newly_unlocked_achievements', []);
+                $newlyUnlocked[] = $achievementId;
+                $session->set('newly_unlocked_achievements', $newlyUnlocked);
+            }
+
+            return true;
+        }
+
+        // For anonymous users, store in session
         $session = $this->getSession();
         if (!$session) {
             return false;
@@ -158,6 +214,12 @@ class AchievementService
 
     public function getTotalPoints(): int
     {
+        $user = $this->getUser();
+
+        if ($user) {
+            return $user->getTotalAchievementPoints();
+        }
+
         $unlocked = $this->getUnlockedAchievements();
         $points = 0;
         foreach ($unlocked as $achievementId) {
@@ -197,6 +259,31 @@ class AchievementService
     // Tracking stats for achievement unlocks
     public function incrementStat(string $statName, int $catId = null): void
     {
+        $user = $this->getUser();
+
+        if ($user) {
+            // For authenticated users, persist stats to user entity
+            $stats = $user->getAchievementStats() ?? [];
+
+            if (!isset($stats[$statName])) {
+                $stats[$statName] = ['count' => 0, 'cats' => []];
+            }
+
+            $stats[$statName]['count']++;
+
+            if ($catId !== null && !in_array($catId, $stats[$statName]['cats'])) {
+                $stats[$statName]['cats'][] = $catId;
+            }
+
+            $user->setAchievementStats($stats);
+            $this->entityManager->flush();
+
+            // Check for achievement unlocks based on this stat
+            $this->checkStatBasedAchievements($stats);
+            return;
+        }
+
+        // For anonymous users, use session
         $session = $this->getSession();
         if (!$session) {
             return;
@@ -222,6 +309,13 @@ class AchievementService
 
     public function getStat(string $statName): array
     {
+        $user = $this->getUser();
+
+        if ($user) {
+            $stats = $user->getAchievementStats() ?? [];
+            return $stats[$statName] ?? ['count' => 0, 'cats' => []];
+        }
+
         $session = $this->getSession();
         if (!$session) {
             return ['count' => 0, 'cats' => []];

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Cat;
+use App\Entity\User;
 use App\Repository\CatRepository;
 use App\Service\AchievementService;
 use App\Service\AdoptionService;
@@ -14,6 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AdoptionController extends AbstractController
 {
@@ -90,15 +92,23 @@ class AdoptionController extends AbstractController
     }
 
     #[Route('/cat/{id}/foster', name: 'app_cat_foster', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function foster(Cat $cat): Response
     {
+        /** @var User $user */
+        $user = $this->getUser();
+
         if ($cat->isAdopted()) {
             $this->addFlash('error', 'This cat has already been adopted!');
             return $this->redirectToRoute('app_home');
         }
 
         if ($cat->isFostered()) {
-            $this->addFlash('info', sprintf('You are already fostering %s!', $cat->getName()));
+            if ($cat->isOwnedBy($user)) {
+                $this->addFlash('info', sprintf('You are already fostering %s!', $cat->getName()));
+            } else {
+                $this->addFlash('error', sprintf('%s is already being fostered by someone else.', $cat->getName()));
+            }
             return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
         }
 
@@ -108,6 +118,7 @@ class AdoptionController extends AbstractController
         }
 
         $cat->setFostered(true);
+        $cat->setOwner($user);
         $this->entityManager->flush();
 
         $this->achievementService->unlockAchievement('foster_parent');
@@ -118,11 +129,21 @@ class AdoptionController extends AbstractController
     }
 
     #[Route('/cat/{id}/adopt', name: 'app_cat_adopt_new', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function adopt(Cat $cat): Response
     {
+        /** @var User $user */
+        $user = $this->getUser();
+
         if ($cat->isAdopted()) {
             $this->addFlash('error', 'This cat has already been adopted!');
             return $this->redirectToRoute('app_home');
+        }
+
+        // Only the fostering user can adopt
+        if ($cat->isFostered() && !$cat->isOwnedBy($user)) {
+            $this->addFlash('error', sprintf('%s is being fostered by someone else.', $cat->getName()));
+            return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
         }
 
         if (!$cat->canBeAdopted()) {
@@ -134,11 +155,12 @@ class AdoptionController extends AbstractController
         }
 
         $cat->setAdopted(true);
+        $cat->setOwner($user);
         $this->entityManager->flush();
 
         $this->achievementService->unlockAchievement('forever_home');
 
-        $this->addFlash('success', sprintf('🎉 Congratulations! You have officially adopted %s! Welcome to your forever family!', $cat->getName()));
+        $this->addFlash('success', sprintf('Congratulations! You have officially adopted %s! Welcome to your forever family!', $cat->getName()));
 
         return $this->redirectToRoute('app_adoptions');
     }
