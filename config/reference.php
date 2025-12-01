@@ -992,6 +992,14 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *     generate_final_classes?: bool, // Default: true
  *     generate_final_entities?: bool, // Default: false
  * }
+ * @psalm-type WebProfilerConfig = array{
+ *     toolbar?: bool|array{ // Profiler toolbar configuration
+ *         enabled?: bool, // Default: false
+ *         ajax_replace?: bool, // Replace toolbar on AJAX requests // Default: false
+ *     },
+ *     intercept_redirects?: bool, // Default: false
+ *     excluded_ajax_paths?: scalar|null, // Default: "^/((index|app(_[\\w]+)?)\\.php/)?_wdt"
+ * }
  * @psalm-type AiConfig = array{
  *     platform?: array{
  *         albert?: array{
@@ -1383,6 +1391,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         maker?: MakerConfig,
+ *         web_profiler?: WebProfilerConfig,
  *         ai?: AiConfig,
  *         twig_component?: TwigComponentConfig,
  *         live_component?: LiveComponentConfig,
@@ -1411,6 +1420,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *         symfonycasts_tailwind?: SymfonycastsTailwindConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         web_profiler?: WebProfilerConfig,
  *         ai?: AiConfig,
  *         twig_component?: TwigComponentConfig,
  *         live_component?: LiveComponentConfig,
