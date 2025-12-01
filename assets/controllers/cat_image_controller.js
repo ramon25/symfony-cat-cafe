@@ -15,24 +15,8 @@ export default class extends Controller {
     };
 
     connect() {
-        // Load existing image if available
-        this.loadImage();
-    }
-
-    async loadImage() {
-        try {
-            const response = await fetch(this.imageUrlValue);
-            const data = await response.json();
-
-            if (data.success && data.hasImage) {
-                this.showImage(data.imageDataUrl, data.prompt, data.generatedAt);
-            } else {
-                this.showPlaceholder();
-            }
-        } catch (error) {
-            console.error('Failed to load cat image:', error);
-            this.showPlaceholder();
-        }
+        // Initial state is already rendered by the template server-side
+        // No need to load on connect - avoids unnecessary API call and flash of content
     }
 
     async generate(event) {

@@ -57,14 +57,14 @@
                     </div>
                 </div>
 
-                <!-- Placeholder (emoji) -->
-                <div data-cat-image-target="placeholder" class="hidden">
+                <!-- Placeholder (emoji) - shown by default when no AI image -->
+                <div data-cat-image-target="placeholder" class="{% if cat.hasAiImage %}hidden{% endif %}">
                     <span class="text-8xl block">{{ cat.moodEmoji }}</span>
                 </div>
 
-                <!-- AI Image -->
+                <!-- AI Image - shown when available -->
                 <img data-cat-image-target="image"
-                     src="{{ cat.aiImageDataUrl }}"
+                     {% if cat.hasAiImage %}src="{{ cat.aiImageDataUrl }}"{% endif %}
                      alt="{{ cat.name }}'s AI Portrait"
                      class="{% if not cat.hasAiImage %}hidden{% endif %} w-48 h-48 mx-auto rounded-full object-cover border-4 border-white/30 shadow-xl">
 
