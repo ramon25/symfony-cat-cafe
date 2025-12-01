@@ -7,6 +7,7 @@ use App\Entity\ChatMessage;
 use App\Repository\CatRepository;
 use App\Repository\ChatMessageRepository;
 use App\Service\AchievementService;
+use App\Service\CatGeneratorService;
 use App\Service\CatTherapistService;
 use App\Service\CatWisdomService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,6 +26,7 @@ class CafeController extends AbstractController
         private CatTherapistService $therapistService,
         private ChatMessageRepository $chatMessageRepository,
         private AchievementService $achievementService,
+        private CatGeneratorService $catGeneratorService,
     ) {
     }
 
@@ -299,6 +301,71 @@ class CafeController extends AbstractController
         }
 
         return $this->render('cafe/new.html.twig');
+    }
+
+    #[Route('/cat/new/ai', name: 'app_cat_new_ai')]
+    public function newWithAi(): Response
+    {
+        return $this->render('cafe/new_ai.html.twig');
+    }
+
+    #[Route('/cat/generate', name: 'app_cat_generate', methods: ['POST'])]
+    public function generateCat(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $prompt = $data['prompt'] ?? null;
+
+        try {
+            $catData = $this->catGeneratorService->generateCat($prompt);
+
+            return new JsonResponse([
+                'success' => true,
+                'cat' => $catData,
+            ]);
+        } catch (\Throwable $e) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'Failed to generate cat. Please try again!',
+            ], 500);
+        }
+    }
+
+    #[Route('/cat/save-generated', name: 'app_cat_save_generated', methods: ['POST'])]
+    public function saveGeneratedCat(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!$data || !isset($data['name'], $data['breed'], $data['age'], $data['color'])) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'Missing required cat data.',
+            ], 400);
+        }
+
+        try {
+            $cat = new Cat();
+            $cat->setName($data['name']);
+            $cat->setBreed($data['breed']);
+            $cat->setAge((int) $data['age']);
+            $cat->setColor($data['color']);
+            $cat->setDescription($data['description'] ?? null);
+            $cat->setPreferredInteraction($data['preferredInteraction'] ?? 'pet');
+
+            $this->entityManager->persist($cat);
+            $this->entityManager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => sprintf('%s has joined the cat cafe!', $cat->getName()),
+                'catId' => $cat->getId(),
+                'redirectUrl' => $this->generateUrl('app_cat_show', ['id' => $cat->getId()]),
+            ]);
+        } catch (\Throwable $e) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'Failed to save cat. Please try again!',
+            ], 500);
+        }
     }
 
     #[Route('/feed-all', name: 'app_feed_all', methods: ['POST'])]

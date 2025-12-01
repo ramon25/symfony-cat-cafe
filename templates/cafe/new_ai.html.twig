@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AI Cat Generator - Whiskers & Wonders Cat Cafe{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto" data-controller="cat-generator"
+     data-cat-generator-generate-url-value="{{ path('app_cat_generate') }}"
+     data-cat-generator-save-url-value="{{ path('app_cat_save_generated') }}">
+    <!-- Back Button -->
+    <a href="{{ path('app_home') }}" class="inline-flex items-center text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 mb-6">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to all cats
+    </a>
+
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors duration-300">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 p-6 text-center">
+            <span class="text-6xl mb-2 block">✨🐱</span>
+            <h1 class="text-3xl font-bold text-white">AI Cat Generator</h1>
+            <p class="text-purple-100">Let AI create a unique furry friend!</p>
+        </div>
+
+        <!-- Generation Section -->
+        <div class="p-6 space-y-6">
+            <!-- Prompt Input -->
+            <div>
+                <label for="prompt" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Describe your ideal cat (optional)
+                </label>
+                <textarea
+                    id="prompt"
+                    data-cat-generator-target="prompt"
+                    rows="3"
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-colors resize-none"
+                    placeholder="e.g., A playful orange tabby who loves to nap in sunny spots..."
+                ></textarea>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Leave empty for a completely random cat!</p>
+            </div>
+
+            <!-- Generate Button -->
+            <button
+                type="button"
+                data-cat-generator-target="generateBtn"
+                data-action="click->cat-generator#generate"
+                class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-xl transition-all text-lg flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                <span data-cat-generator-target="generateBtnText">
+                    <span class="text-xl mr-2">✨</span>
+                    Generate Cat with AI
+                </span>
+                <span data-cat-generator-target="generateBtnLoading" class="hidden">
+                    <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generating...
+                </span>
+            </button>
+
+            <!-- Generated Cat Preview (hidden initially) -->
+            <div data-cat-generator-target="preview" class="hidden">
+                <hr class="my-6 border-gray-200 dark:border-gray-700">
+
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
+                    <span class="text-2xl mr-2">🎉</span>
+                    Meet Your New Cat!
+                </h2>
+
+                <!-- Cat Card Preview -->
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl p-6 border-2 border-purple-200 dark:border-purple-700">
+                    <div class="flex items-start space-x-4">
+                        <div class="text-6xl" data-cat-generator-target="previewEmoji">🐱</div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold text-purple-800 dark:text-purple-200" data-cat-generator-target="previewName">-</h3>
+                            <p class="text-purple-600 dark:text-purple-300 font-medium" data-cat-generator-target="previewBreed">-</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4 mt-4">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Age</div>
+                            <div class="text-lg font-bold text-gray-800 dark:text-white" data-cat-generator-target="previewAge">-</div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Color</div>
+                            <div class="text-lg font-bold text-gray-800 dark:text-white" data-cat-generator-target="previewColor">-</div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Loves</div>
+                            <div class="text-lg font-bold text-gray-800 dark:text-white" data-cat-generator-target="previewInteraction">-</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg p-4">
+                        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium mb-1">Personality</div>
+                        <p class="text-gray-700 dark:text-gray-300" data-cat-generator-target="previewDescription">-</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-4 mt-6">
+                    <button
+                        type="button"
+                        data-action="click->cat-generator#generate"
+                        class="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center space-x-2"
+                    >
+                        <span class="text-xl">🔄</span>
+                        <span>Generate Another</span>
+                    </button>
+                    <button
+                        type="button"
+                        data-cat-generator-target="saveBtn"
+                        data-action="click->cat-generator#save"
+                        class="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <span data-cat-generator-target="saveBtnText">
+                            <span class="text-xl mr-1">💕</span>
+                            Add to Cafe
+                        </span>
+                        <span data-cat-generator-target="saveBtnLoading" class="hidden">
+                            <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Saving...
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div data-cat-generator-target="error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 text-red-700 dark:text-red-300">
+                <div class="flex items-center">
+                    <span class="text-xl mr-2">😿</span>
+                    <span data-cat-generator-target="errorText">Something went wrong!</span>
+                </div>
+            </div>
+
+            <!-- Manual Creation Link -->
+            <div class="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
+                <p class="text-gray-500 dark:text-gray-400 text-sm">
+                    Prefer to create a cat manually?
+                    <a href="{{ path('app_cat_new') }}" class="text-purple-600 dark:text-purple-400 hover:underline font-medium">
+                        Use the form instead
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
