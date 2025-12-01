@@ -121,6 +121,16 @@ class Cat
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $aiWebsiteGeneratedAt = null;
 
+    // AI-generated image (cached in database as base64)
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $aiImageBase64 = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $aiImagePrompt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $aiImageGeneratedAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -646,6 +656,50 @@ class Cat
         return $this->owner->getId() === $user->getId();
     }
 
+    // AI-Generated Image Methods
+    public function getAiImageBase64(): ?string
+    {
+        return $this->aiImageBase64;
+    }
+
+    public function setAiImageBase64(?string $base64): static
+    {
+        $this->aiImageBase64 = $base64;
+        return $this;
+    }
+
+    public function getAiImagePrompt(): ?string
+    {
+        return $this->aiImagePrompt;
+    }
+
+    public function setAiImagePrompt(?string $prompt): static
+    {
+        $this->aiImagePrompt = $prompt;
+        return $this;
+    }
+
+    public function getAiImageGeneratedAt(): ?\DateTimeImmutable
+    {
+        return $this->aiImageGeneratedAt;
+    }
+
+    public function setAiImageGeneratedAt(?\DateTimeImmutable $generatedAt): static
+    {
+        $this->aiImageGeneratedAt = $generatedAt;
+        return $this;
+    }
+
+    public function hasAiImage(): bool
+    {
+        return $this->aiImageBase64 !== null;
+    }
+
+    public function clearAiImage(): static
+    {
+        $this->aiImageBase64 = null;
+        $this->aiImagePrompt = null;
+        $this->aiImageGeneratedAt = null;
     // Cafe Presence Methods
     public function isInCafe(): bool
     {
@@ -701,6 +755,17 @@ class Cat
         return $this;
     }
 
+    /**
+     * Get the AI image as a data URL for use in img src attribute.
+     */
+    public function getAiImageDataUrl(): ?string
+    {
+        if ($this->aiImageBase64 === null) {
+            return null;
+        }
+        return 'data:image/png;base64,' . $this->aiImageBase64; 
+    }
+      
     /**
      * Get the cat's location status text
      */

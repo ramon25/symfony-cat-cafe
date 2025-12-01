@@ -11,6 +11,7 @@ use App\Repository\CatRepository;
 use App\Repository\ChatMessageRepository;
 use App\Service\AchievementService;
 use App\Service\CatGeneratorService;
+use App\Service\CatImageGeneratorService;
 use App\Service\CatTherapistService;
 use App\Service\CatWebsiteGeneratorService;
 use App\Service\CatWisdomService;
@@ -34,6 +35,7 @@ class CafeController extends AbstractController
         private AchievementService $achievementService,
         private CatGeneratorService $catGeneratorService,
         private CatWebsiteGeneratorService $websiteGeneratorService,
+        private CatImageGeneratorService $imageGeneratorService,
     ) {
     }
 
@@ -576,6 +578,56 @@ class CafeController extends AbstractController
             return new JsonResponse([
                 'success' => false,
                 'error' => 'Failed to regenerate website. Please try again!',
+            ], 500);
+        }
+    }
+
+    #[Route('/api/cat/{id}/image', name: 'app_api_cat_image', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function apiCatImage(Cat $cat): JsonResponse
+    {
+        return new JsonResponse([
+            'success' => true,
+            'catId' => $cat->getId(),
+            'catName' => $cat->getName(),
+            'hasImage' => $cat->hasAiImage(),
+            'imageDataUrl' => $cat->getAiImageDataUrl(),
+            'prompt' => $cat->getAiImagePrompt(),
+            'generatedAt' => $cat->getAiImageGeneratedAt()?->format('Y-m-d H:i:s'),
+            'available' => $this->imageGeneratorService->isAvailable(),
+        ]);
+    }
+
+    #[Route('/api/cat/{id}/image/generate', name: 'app_api_cat_image_generate', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function apiCatImageGenerate(Cat $cat): JsonResponse
+    {
+        if (!$this->imageGeneratorService->isAvailable()) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'Image generation is not available. Please configure the GEMINI_API_KEY.',
+            ], 503);
+        }
+
+        try {
+            $imageData = $this->imageGeneratorService->getImage($cat, forceRegenerate: true);
+
+            if ($imageData === null) {
+                return new JsonResponse([
+                    'success' => false,
+                    'error' => 'Failed to generate image. Please try again!',
+                ], 500);
+            }
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => sprintf('%s\'s AI portrait has been generated!', $cat->getName()),
+                'imageDataUrl' => $cat->getAiImageDataUrl(),
+                'prompt' => $cat->getAiImagePrompt(),
+                'generatedAt' => $cat->getAiImageGeneratedAt()?->format('Y-m-d H:i:s'),
+            ]);
+        } catch (\Throwable $e) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'Failed to generate image. Please try again!',
             ], 500);
         }
     }

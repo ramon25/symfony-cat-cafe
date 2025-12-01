@@ -34,11 +34,77 @@
 
     <!-- Cat Profile Card -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors duration-300">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-600 dark:to-amber-600 p-8 text-center">
-            <span class="text-8xl mb-4 block">{{ cat.moodEmoji }}</span>
+        <!-- Header with AI Image -->
+        <div class="bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-600 dark:to-amber-600 p-8 text-center"
+             data-controller="cat-image"
+             data-cat-image-image-url-value="{{ path('app_api_cat_image', {id: cat.id}) }}"
+             data-cat-image-generate-url-value="{{ path('app_api_cat_image_generate', {id: cat.id}) }}"
+             data-cat-image-cat-name-value="{{ cat.name }}"
+             data-cat-image-cat-emoji-value="{{ cat.moodEmoji }}">
+
+            <!-- AI Generated Image -->
+            <div class="mb-4 relative inline-block">
+                <!-- Loading State -->
+                <div data-cat-image-target="loading" class="hidden">
+                    <div class="w-48 h-48 mx-auto rounded-full bg-white/20 flex items-center justify-center">
+                        <div class="flex flex-col items-center text-white">
+                            <svg class="animate-spin w-8 h-8 mb-2" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span class="text-sm">Generating AI portrait...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Placeholder (emoji) - shown by default when no AI image -->
+                <div data-cat-image-target="placeholder" class="{% if cat.hasAiImage %}hidden{% endif %}">
+                    <span class="text-8xl block">{{ cat.moodEmoji }}</span>
+                </div>
+
+                <!-- AI Image - shown when available -->
+                <img data-cat-image-target="image"
+                     {% if cat.hasAiImage %}src="{{ cat.aiImageDataUrl }}"{% endif %}
+                     alt="{{ cat.name }}'s AI Portrait"
+                     class="{% if not cat.hasAiImage %}hidden{% endif %} w-48 h-48 mx-auto rounded-full object-cover border-4 border-white/30 shadow-xl">
+
+                <!-- Error Message -->
+                <p data-cat-image-target="error" class="hidden text-white/80 text-sm mt-2"></p>
+            </div>
+
             <h1 class="text-4xl font-bold text-white">{{ cat.name }}</h1>
             <p class="text-orange-100 text-lg">{{ cat.breed }}</p>
+
+            <!-- Generate/Regenerate Button -->
+            <div class="mt-4">
+                {% if cat.hasAiImage %}
+                <button type="button"
+                        data-cat-image-target="regenerateBtn"
+                        data-action="click->cat-image#regenerate"
+                        class="bg-white/20 hover:bg-white/30 text-white text-sm font-medium py-2 px-4 rounded-lg transition-all inline-flex items-center gap-2">
+                    <span>🔄</span>
+                    <span>Regenerate</span>
+                </button>
+                {% else %}
+                <button type="button"
+                        data-cat-image-target="generateBtn"
+                        data-action="click->cat-image#generate"
+                        class="bg-white/20 hover:bg-white/30 text-white text-sm font-medium py-2 px-4 rounded-lg transition-all inline-flex items-center gap-2">
+                    <span>🎨</span>
+                    <span>Generate AI Portrait</span>
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- AI Badge -->
+            {% if cat.hasAiImage %}
+            <div class="mt-2">
+                <span class="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">AI Generated</span>
+                {% if cat.aiImageGeneratedAt %}
+                <p data-cat-image-target="generatedAt" class="text-xs text-white/60 mt-1">Generated: {{ cat.aiImageGeneratedAt|date('M j, Y g:i A') }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
 
         <!-- Info -->
