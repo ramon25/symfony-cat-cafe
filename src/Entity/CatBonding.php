@@ -117,12 +117,27 @@ class CatBonding
 
     public function canFoster(): bool
     {
-        return $this->bondingLevel >= 30 && $this->compatibilityScore !== null;
+        // Check bonding level requirement (30% minimum)
+        $bondingMet = $this->getBondingLevel() >= 30;
+
+        // Check if compatibility quiz is completed
+        $quizCompleted = $this->getCompatibilityScore() !== null;
+
+        return $bondingMet && $quizCompleted;
     }
 
     public function canAdopt(): bool
     {
-        return $this->bondingLevel >= 50 && $this->cat->isFostered() && $this->cat->isOwnedBy($this->user);
+        // Check bonding level requirement (50% minimum)
+        $bondingMet = $this->getBondingLevel() >= 50;
+
+        // Check if cat is being fostered
+        $isFostered = $this->cat->isFostered();
+
+        // Check if current user is the one fostering (owner)
+        $isOwner = $this->cat->isOwnedBy($this->user);
+
+        return $bondingMet && $isFostered && $isOwner;
     }
 
     public function getCompatibilityLabel(): string
