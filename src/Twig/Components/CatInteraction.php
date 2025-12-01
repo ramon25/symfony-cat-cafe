@@ -3,9 +3,13 @@
 namespace App\Twig\Components;
 
 use App\Entity\Cat;
+use App\Entity\CatBonding;
+use App\Entity\User;
+use App\Repository\CatBondingRepository;
 use App\Repository\CatRepository;
 use App\Service\AchievementService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
@@ -30,14 +34,43 @@ class CatInteraction
 
     public function __construct(
         private readonly CatRepository $catRepository,
+        private readonly CatBondingRepository $catBondingRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly AchievementService $achievementService,
+        private readonly Security $security,
     ) {
     }
 
     public function getCat(): ?Cat
     {
         return $this->catRepository->find($this->catId);
+    }
+
+    public function getBonding(): ?CatBonding
+    {
+        $user = $this->security->getUser();
+        if (!$user instanceof User) {
+            return null;
+        }
+
+        $cat = $this->getCat();
+        if (!$cat) {
+            return null;
+        }
+
+        return $this->catBondingRepository->findByUserAndCat($user, $cat);
+    }
+
+    private function updateUserBonding(Cat $cat, string $interactionType): void
+    {
+        $user = $this->security->getUser();
+        if (!$user instanceof User) {
+            return;
+        }
+
+        $bonding = $this->catBondingRepository->getOrCreate($user, $cat);
+        $increase = $cat->calculateBondingIncrease($interactionType);
+        $bonding->increaseBonding($increase);
     }
 
     #[LiveAction]
@@ -52,12 +85,13 @@ class CatInteraction
                 return;
             }
             $cat->feed();
+            $this->updateUserBonding($cat, Cat::INTERACTION_FEED);
             $this->entityManager->flush();
             $this->achievementService->incrementStat('feed', $cat->getId());
             $this->checkBondingAchievements($cat);
             $this->lastAction = 'feed';
-            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_FEED ? ' 💕 They LOVE this!' : '';
-            $this->actionMessage = "Yum! {$cat->getName()} enjoyed their meal! 🍽️{$bonus}";
+            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_FEED ? ' They LOVE this!' : '';
+            $this->actionMessage = "Yum! {$cat->getName()} enjoyed their meal!{$bonus}";
             $this->bondingMessage = $this->getBondingMessage($cat, Cat::INTERACTION_FEED);
         }
     }
@@ -74,12 +108,13 @@ class CatInteraction
                 return;
             }
             $cat->pet();
+            $this->updateUserBonding($cat, Cat::INTERACTION_PET);
             $this->entityManager->flush();
             $this->achievementService->incrementStat('pet', $cat->getId());
             $this->checkBondingAchievements($cat);
             $this->lastAction = 'pet';
-            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_PET ? ' 💕 They LOVE this!' : '';
-            $this->actionMessage = "{$cat->getName()} purrs contentedly... 🤗{$bonus}";
+            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_PET ? ' They LOVE this!' : '';
+            $this->actionMessage = "{$cat->getName()} purrs contentedly...{$bonus}";
             $this->bondingMessage = $this->getBondingMessage($cat, Cat::INTERACTION_PET);
         }
     }
@@ -96,12 +131,13 @@ class CatInteraction
                 return;
             }
             $cat->play();
+            $this->updateUserBonding($cat, Cat::INTERACTION_PLAY);
             $this->entityManager->flush();
             $this->achievementService->incrementStat('play', $cat->getId());
             $this->checkBondingAchievements($cat);
             $this->lastAction = 'play';
-            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_PLAY ? ' 💕 They LOVE this!' : '';
-            $this->actionMessage = "{$cat->getName()} had so much fun playing! 🧶{$bonus}";
+            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_PLAY ? ' They LOVE this!' : '';
+            $this->actionMessage = "{$cat->getName()} had so much fun playing!{$bonus}";
             $this->bondingMessage = $this->getBondingMessage($cat, Cat::INTERACTION_PLAY);
         }
     }
@@ -118,19 +154,22 @@ class CatInteraction
                 return;
             }
             $cat->rest();
+            $this->updateUserBonding($cat, Cat::INTERACTION_REST);
             $this->entityManager->flush();
             $this->achievementService->incrementStat('rest', $cat->getId());
             $this->checkBondingAchievements($cat);
             $this->lastAction = 'rest';
-            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_REST ? ' 💕 They LOVE this!' : '';
-            $this->actionMessage = "{$cat->getName()} is feeling refreshed! 😴{$bonus}";
+            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_REST ? ' They LOVE this!' : '';
+            $this->actionMessage = "{$cat->getName()} is feeling refreshed!{$bonus}";
             $this->bondingMessage = $this->getBondingMessage($cat, Cat::INTERACTION_REST);
         }
     }
 
     private function checkBondingAchievements(Cat $cat): void
     {
-        if ($cat->getBondingLevel() >= 80) {
+        $bonding = $this->getBonding();
+        $bondingLevel = $bonding?->getBondingLevel() ?? 0;
+        if ($bondingLevel >= 80) {
             $this->achievementService->unlockAchievement('best_friends');
         }
     }

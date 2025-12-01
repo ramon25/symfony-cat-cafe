@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Cat;
+use App\Entity\CatBonding;
 use App\Entity\User;
+use App\Repository\CatBondingRepository;
 use App\Repository\CatRepository;
 use App\Service\AchievementService;
 use App\Service\AdoptionService;
@@ -22,6 +24,7 @@ class AdoptionController extends AbstractController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CatRepository $catRepository,
+        private CatBondingRepository $catBondingRepository,
         private AdoptionService $adoptionService,
         private AchievementService $achievementService,
         private CatMatchmakerService $matchmakerService,
@@ -38,15 +41,17 @@ class AdoptionController extends AbstractController
         }
 
         $questions = $this->adoptionService->getQuizQuestions();
+        $existingScore = $this->getUserCompatibilityScore($cat);
 
         return $this->render('adoption/quiz.html.twig', [
             'cat' => $cat,
             'questions' => $questions,
-            'existingScore' => $cat->getCompatibilityScore(),
+            'existingScore' => $existingScore,
         ]);
     }
 
     #[Route('/cat/{id}/quiz/submit', name: 'app_cat_quiz_submit', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function submitQuiz(Cat $cat, Request $request): Response
     {
         if ($cat->isAdopted()) {
@@ -54,10 +59,14 @@ class AdoptionController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
-        $answers = $request->request->all();
-        $score = $this->adoptionService->calculateCompatibility($cat, $answers);
+        /** @var User $user */
+        $user = $this->getUser();
 
-        $cat->setCompatibilityScore($score);
+        $answers = $request->request->all();
+        $bonding = $this->catBondingRepository->getOrCreate($user, $cat);
+        $score = $this->adoptionService->calculateCompatibility($cat, $answers, $bonding);
+
+        $bonding->setCompatibilityScore($score);
         $this->entityManager->flush();
 
         // Unlock quiz achievements
@@ -70,23 +79,27 @@ class AdoptionController extends AbstractController
     }
 
     #[Route('/cat/{id}/quiz/result', name: 'app_cat_quiz_result', requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
     public function quizResult(Cat $cat): Response
     {
-        if ($cat->getCompatibilityScore() === null) {
+        $bonding = $this->getUserBonding($cat);
+        $score = $bonding?->getCompatibilityScore();
+
+        if ($score === null) {
             return $this->redirectToRoute('app_cat_quiz', ['id' => $cat->getId()]);
         }
 
-        $score = $cat->getCompatibilityScore();
         $message = $this->adoptionService->getCompatibilityMessage($score);
-        $fosterRequirements = $this->adoptionService->getFosteringRequirements($cat);
+        $fosterRequirements = $this->adoptionService->getFosteringRequirements($cat, $bonding);
         $newAchievements = $this->achievementService->getNewlyUnlockedAchievements();
 
         return $this->render('adoption/quiz_result.html.twig', [
             'cat' => $cat,
+            'bonding' => $bonding,
             'score' => $score,
             'message' => $message,
             'fosterRequirements' => $fosterRequirements,
-            'canFoster' => $cat->canBeFostered(),
+            'canFoster' => $bonding->canFoster(),
             'newAchievements' => $newAchievements,
         ]);
     }
@@ -112,7 +125,8 @@ class AdoptionController extends AbstractController
             return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
         }
 
-        if (!$cat->canBeFostered()) {
+        $bonding = $this->getUserBonding($cat);
+        if ($bonding === null || !$bonding->canFoster()) {
             $this->addFlash('error', 'You need to build more bond and complete the compatibility quiz first!');
             return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
         }
@@ -123,7 +137,7 @@ class AdoptionController extends AbstractController
 
         $this->achievementService->unlockAchievement('foster_parent');
 
-        $this->addFlash('success', sprintf('Congratulations! You are now fostering %s! 🏡', $cat->getName()));
+        $this->addFlash('success', sprintf('Congratulations! You are now fostering %s!', $cat->getName()));
 
         return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
     }
@@ -146,8 +160,9 @@ class AdoptionController extends AbstractController
             return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
         }
 
-        if (!$cat->canBeAdopted()) {
-            $requirements = $this->adoptionService->getAdoptionRequirements($cat);
+        $bonding = $this->getUserBonding($cat);
+        if ($bonding === null || !$bonding->canAdopt()) {
+            $requirements = $this->adoptionService->getAdoptionRequirements($cat, $bonding);
             $missing = array_filter($requirements, fn($r) => !$r['met']);
             $missingLabels = array_map(fn($r) => $r['label'], $missing);
             $this->addFlash('error', 'Almost there! You still need: ' . implode(', ', $missingLabels));
@@ -188,29 +203,33 @@ class AdoptionController extends AbstractController
             ]);
         }
 
-        $fosterRequirements = $this->adoptionService->getFosteringRequirements($cat);
-        $adoptionRequirements = $this->adoptionService->getAdoptionRequirements($cat);
+        $bonding = $this->getUserBonding($cat);
+        $fosterRequirements = $this->adoptionService->getFosteringRequirements($cat, $bonding);
+        $adoptionRequirements = $this->adoptionService->getAdoptionRequirements($cat, $bonding);
 
         return $this->render('adoption/journey.html.twig', [
             'cat' => $cat,
+            'bonding' => $bonding,
             'fosterRequirements' => $fosterRequirements,
             'adoptionRequirements' => $adoptionRequirements,
-            'canFoster' => $cat->canBeFostered(),
-            'canAdopt' => $cat->canBeAdopted(),
+            'canFoster' => $bonding?->canFoster() ?? false,
+            'canAdopt' => $bonding?->canAdopt() ?? false,
         ]);
     }
 
     #[Route('/api/cat/{id}/bonding', name: 'app_api_cat_bonding', methods: ['GET'])]
     public function apiBonding(Cat $cat): JsonResponse
     {
+        $bonding = $this->getUserBonding($cat);
+
         return new JsonResponse([
-            'bondingLevel' => $cat->getBondingLevel(),
-            'milestone' => $cat->getBondingMilestone(),
-            'emoji' => $cat->getBondingEmoji(),
-            'canFoster' => $cat->canBeFostered(),
-            'canAdopt' => $cat->canBeAdopted(),
+            'bondingLevel' => $bonding?->getBondingLevel() ?? 0,
+            'milestone' => $bonding?->getBondingMilestone() ?? 'Just Met',
+            'emoji' => $bonding?->getBondingEmoji() ?? "\u{1F90D}",
+            'canFoster' => $bonding?->canFoster() ?? false,
+            'canAdopt' => $bonding?->canAdopt() ?? false,
             'isFostered' => $cat->isFostered(),
-            'compatibilityScore' => $cat->getCompatibilityScore(),
+            'compatibilityScore' => $bonding?->getCompatibilityScore(),
             'preferredInteraction' => $cat->getPreferredInteraction(),
         ]);
     }
@@ -272,12 +291,14 @@ class AdoptionController extends AbstractController
     #[Route('/api/cat/{id}/bonding-advice', name: 'app_api_cat_bonding_advice', methods: ['GET'])]
     public function apiBondingAdvice(Cat $cat): JsonResponse
     {
-        $advice = $this->matchmakerService->getBondingAdvice($cat, $cat->getBondingLevel());
+        $bonding = $this->getUserBonding($cat);
+        $bondingLevel = $bonding?->getBondingLevel() ?? 0;
+        $advice = $this->matchmakerService->getBondingAdvice($cat, $bondingLevel);
 
         return new JsonResponse([
             'advice' => $advice,
-            'bondingLevel' => $cat->getBondingLevel(),
-            'milestone' => $cat->getBondingMilestone(),
+            'bondingLevel' => $bondingLevel,
+            'milestone' => $bonding?->getBondingMilestone() ?? 'Just Met',
         ]);
     }
 
@@ -315,8 +336,10 @@ class AdoptionController extends AbstractController
     public function apiThought(Cat $cat): JsonResponse
     {
         // Thoughts and bonding messages are always fresh (based on current state)
+        $bonding = $this->getUserBonding($cat);
+        $bondingLevel = $bonding?->getBondingLevel() ?? 0;
         $thought = $this->personalityService->generateCatThought($cat);
-        $bondingMessage = $this->personalityService->generateBondingMessage($cat, $cat->getBondingLevel());
+        $bondingMessage = $this->personalityService->generateBondingMessage($cat, $bondingLevel);
 
         return new JsonResponse([
             'thought' => $thought,
@@ -353,5 +376,30 @@ class AdoptionController extends AbstractController
             'funFacts' => $cat->getAiFunFacts(),
             'generatedAt' => $cat->getAiGeneratedAt()?->format('Y-m-d H:i:s'),
         ]);
+    }
+
+    // === HELPER METHODS ===
+
+    /**
+     * Get user-specific bonding for the current user and cat.
+     */
+    private function getUserBonding(Cat $cat): ?CatBonding
+    {
+        /** @var User|null $user */
+        $user = $this->getUser();
+
+        if ($user === null) {
+            return null;
+        }
+
+        return $this->catBondingRepository->findByUserAndCat($user, $cat);
+    }
+
+    /**
+     * Get user-specific compatibility score for the current user and cat.
+     */
+    private function getUserCompatibilityScore(Cat $cat): ?int
+    {
+        return $this->getUserBonding($cat)?->getCompatibilityScore();
     }
 }
