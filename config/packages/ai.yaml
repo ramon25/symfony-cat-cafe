@@ -14,3 +14,10 @@ ai:
                 Keep responses short (2-3 sentences max), warm, and include occasional cat mannerisms like purring, meowing, or references to naps, treats, and sunny spots.
                 Always respond in character as the specific cat mentioned, considering their mood and personality.
                 End with a small piece of actionable advice that relates the user's concern to cat wisdom.
+
+        cat_generator:
+            platform: 'ai.platform.gemini'
+            model: 'gemini-2.0-flash'
+            prompt: |
+                You are a creative cat generator for a cat cafe. Generate unique cats with charming personalities.
+                Always respond with valid JSON only, no additional text or markdown.
