@@ -5,6 +5,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}Whiskers & Wonders Cat Cafe{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🐱</text></svg>">
+        <script>
+            // Prevent flash of wrong theme
+            (function() {
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                }
+            })();
+        </script>
         {% block stylesheets %}
             <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
         {% endblock %}
@@ -13,26 +23,34 @@
             {{ importmap('app') }}
         {% endblock %}
     </head>
-    <body class="bg-gradient-to-br from-orange-50 to-amber-100 min-h-screen">
-        <nav class="bg-white shadow-lg sticky top-0 z-50">
+    <body class="bg-gradient-to-br from-orange-50 to-amber-100 dark:from-gray-900 dark:to-gray-800 min-h-screen transition-colors duration-300">
+        <nav class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50 transition-colors duration-300" data-controller="dark-mode">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center">
                         <a href="{{ path('app_home') }}" class="flex items-center space-x-2">
                             <span class="text-3xl">🐱</span>
-                            <span class="text-xl font-bold text-orange-600">Whiskers & Wonders</span>
+                            <span class="text-xl font-bold text-orange-600 dark:text-orange-400">Whiskers & Wonders</span>
                         </a>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <a href="{{ path('app_home') }}" class="text-gray-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="{{ path('app_home') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Our Cats
                         </a>
-                        <a href="{{ path('app_cat_new') }}" class="text-gray-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="{{ path('app_cat_new') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Add Cat
                         </a>
-                        <a href="{{ path('app_adoptions') }}" class="text-gray-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="{{ path('app_adoptions') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Adoptions
                         </a>
+                        <button type="button"
+                                data-action="click->dark-mode#toggle"
+                                class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                title="Toggle dark mode">
+                            <svg data-dark-mode-target="icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -40,14 +58,14 @@
 
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {% for message in app.flashes('success') %}
-                <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center">
+                <div class="mb-4 p-4 bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 rounded-lg flex items-center">
                     <span class="mr-2">✅</span>
                     {{ message }}
                 </div>
             {% endfor %}
 
             {% for message in app.flashes('error') %}
-                <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center">
+                <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 rounded-lg flex items-center">
                     <span class="mr-2">❌</span>
                     {{ message }}
                 </div>
@@ -56,8 +74,8 @@
             {% block body %}{% endblock %}
         </main>
 
-        <footer class="bg-white mt-12 py-6 border-t border-gray-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+        <footer class="bg-white dark:bg-gray-800 mt-12 py-6 border-t border-gray-200 dark:border-gray-700 transition-colors duration-300">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 dark:text-gray-400">
                 <p>🐱 Whiskers & Wonders Cat Cafe - Where every purr finds a home 🏠</p>
             </div>
         </footer>

@@ -6,34 +6,34 @@
 <div class="space-y-8">
     <!-- Hero Section -->
     <div class="text-center py-8">
-        <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to Whiskers & Wonders! 🐾</h1>
-        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+        <h1 class="text-4xl font-bold text-gray-800 dark:text-white mb-4">Welcome to Whiskers & Wonders! 🐾</h1>
+        <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Meet our adorable feline friends waiting for their forever homes.
             Spend time with them, care for them, and maybe find your purrfect companion!
         </p>
     </div>
 
     <!-- Stats Bar -->
-    <div class="bg-white rounded-xl shadow-md p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 transition-colors duration-300">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div class="p-4 bg-orange-50 rounded-lg">
-                <p class="text-3xl font-bold text-orange-600">{{ cats|length }}</p>
-                <p class="text-gray-600">Available Cats</p>
+            <div class="p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
+                <p class="text-3xl font-bold text-orange-600 dark:text-orange-400">{{ cats|length }}</p>
+                <p class="text-gray-600 dark:text-gray-300">Available Cats</p>
             </div>
-            <div class="p-4 bg-green-50 rounded-lg">
-                <p class="text-3xl font-bold text-green-600">{{ adoptedCount }}</p>
-                <p class="text-gray-600">Happy Adoptions</p>
+            <div class="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ adoptedCount }}</p>
+                <p class="text-gray-600 dark:text-gray-300">Happy Adoptions</p>
             </div>
-            <div class="p-4 bg-red-50 rounded-lg">
-                <p class="text-3xl font-bold text-red-600">{{ hungryCats|length }}</p>
-                <p class="text-gray-600">Hungry Cats 🍽️</p>
+            <div class="p-4 bg-red-50 dark:bg-red-900/30 rounded-lg">
+                <p class="text-3xl font-bold text-red-600 dark:text-red-400">{{ hungryCats|length }}</p>
+                <p class="text-gray-600 dark:text-gray-300">Hungry Cats 🍽️</p>
             </div>
         </div>
 
         {% if hungryCats|length > 0 %}
         <div class="mt-4 flex justify-center">
             <form action="{{ path('app_feed_all') }}" method="POST">
-                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-full transition-colors flex items-center space-x-2">
+                <button type="submit" class="bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-full transition-colors flex items-center space-x-2">
                     <span>🍽️</span>
                     <span>Feed All Cats</span>
                 </button>
@@ -46,9 +46,9 @@
     {% if cats|length > 0 %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for cat in cats %}
-        <div class="cat-card bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="cat-card bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
             <!-- Cat Header -->
-            <div class="bg-gradient-to-r from-orange-400 to-amber-400 p-4">
+            <div class="bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-600 dark:to-amber-600 p-4">
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-2xl font-bold text-white">{{ cat.name }}</h3>
@@ -60,7 +60,7 @@
 
             <!-- Cat Info -->
             <div class="p-4 space-y-4">
-                <div class="flex justify-between text-sm text-gray-600">
+                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-300">
                     <span>🎂 {{ cat.age }} years old</span>
                     <span>🎨 {{ cat.color }}</span>
                 </div>
@@ -68,43 +68,43 @@
                 <!-- Stats -->
                 <div class="space-y-2">
                     <div>
-                        <div class="flex justify-between text-sm mb-1">
+                        <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
                             <span>Hunger</span>
                             <span>{{ cat.hunger }}%</span>
                         </div>
-                        <div class="bg-gray-200 rounded-full h-2">
+                        <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                             <div class="stat-bar bg-red-400 rounded-full h-2" style="width: {{ cat.hunger }}%"></div>
                         </div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-sm mb-1">
+                        <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
                             <span>Happiness</span>
                             <span>{{ cat.happiness }}%</span>
                         </div>
-                        <div class="bg-gray-200 rounded-full h-2">
+                        <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                             <div class="stat-bar bg-green-400 rounded-full h-2" style="width: {{ cat.happiness }}%"></div>
                         </div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-sm mb-1">
+                        <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
                             <span>Energy</span>
                             <span>{{ cat.energy }}%</span>
                         </div>
-                        <div class="bg-gray-200 rounded-full h-2">
+                        <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                             <div class="stat-bar bg-blue-400 rounded-full h-2" style="width: {{ cat.energy }}%"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Mood -->
-                <div class="text-center py-2 bg-gray-50 rounded-lg">
-                    <span class="text-sm text-gray-600">Feeling: </span>
-                    <span class="font-semibold capitalize text-gray-800">{{ cat.mood }}</span>
+                <div class="text-center py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <span class="text-sm text-gray-600 dark:text-gray-300">Feeling: </span>
+                    <span class="font-semibold capitalize text-gray-800 dark:text-white">{{ cat.mood }}</span>
                 </div>
 
                 <!-- Action Button -->
                 <a href="{{ path('app_cat_show', {id: cat.id}) }}"
-                   class="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                   class="block w-full text-center bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">
                     Visit {{ cat.name }}
                 </a>
             </div>
@@ -112,12 +112,12 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="text-center py-12 bg-white rounded-xl shadow-md">
+    <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-md transition-colors duration-300">
         <span class="text-6xl mb-4 block">😿</span>
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">No cats in the cafe yet!</h2>
-        <p class="text-gray-600 mb-4">Be the first to add a furry friend to our family.</p>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">No cats in the cafe yet!</h2>
+        <p class="text-gray-600 dark:text-gray-300 mb-4">Be the first to add a furry friend to our family.</p>
         <a href="{{ path('app_cat_new') }}"
-           class="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-full transition-colors">
+           class="inline-block bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-full transition-colors">
             Add a Cat
         </a>
     </div>

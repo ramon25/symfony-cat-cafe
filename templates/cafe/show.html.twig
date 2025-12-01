@@ -5,7 +5,7 @@
 {% block body %}
 <div class="max-w-2xl mx-auto">
     <!-- Back Button -->
-    <a href="{{ path('app_home') }}" class="inline-flex items-center text-orange-600 hover:text-orange-700 mb-6">
+    <a href="{{ path('app_home') }}" class="inline-flex items-center text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 mb-6">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
@@ -13,7 +13,7 @@
     </a>
 
     {% if cat.adopted %}
-    <div class="bg-green-100 border border-green-400 text-green-700 rounded-lg p-4 mb-6 flex items-center">
+    <div class="bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 rounded-lg p-4 mb-6 flex items-center">
         <span class="text-2xl mr-3">🏠</span>
         <div>
             <p class="font-bold">This cat has found their forever home!</p>
@@ -23,9 +23,9 @@
     {% endif %}
 
     <!-- Cat Profile Card -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors duration-300">
         <!-- Header -->
-        <div class="bg-gradient-to-r from-orange-400 to-amber-400 p-8 text-center">
+        <div class="bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-600 dark:to-amber-600 p-8 text-center">
             <span class="text-8xl mb-4 block">{{ cat.moodEmoji }}</span>
             <h1 class="text-4xl font-bold text-white">{{ cat.name }}</h1>
             <p class="text-orange-100 text-lg">{{ cat.breed }}</p>
@@ -35,27 +35,27 @@
         <div class="p-6 space-y-6">
             <!-- Basic Info -->
             <div class="grid grid-cols-3 gap-4 text-center">
-                <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <p class="text-2xl">🎂</p>
-                    <p class="font-bold text-gray-800">{{ cat.age }} years</p>
-                    <p class="text-sm text-gray-500">Age</p>
+                    <p class="font-bold text-gray-800 dark:text-white">{{ cat.age }} years</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Age</p>
                 </div>
-                <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <p class="text-2xl">🎨</p>
-                    <p class="font-bold text-gray-800">{{ cat.color }}</p>
-                    <p class="text-sm text-gray-500">Color</p>
+                    <p class="font-bold text-gray-800 dark:text-white">{{ cat.color }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Color</p>
                 </div>
-                <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <p class="text-2xl">{{ cat.moodEmoji }}</p>
-                    <p class="font-bold text-gray-800 capitalize">{{ cat.mood }}</p>
-                    <p class="text-sm text-gray-500">Mood</p>
+                    <p class="font-bold text-gray-800 dark:text-white capitalize">{{ cat.mood }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Mood</p>
                 </div>
             </div>
 
             {% if cat.description %}
-            <div class="p-4 bg-orange-50 rounded-lg">
-                <h3 class="font-bold text-gray-800 mb-2">About {{ cat.name }}</h3>
-                <p class="text-gray-600">{{ cat.description }}</p>
+            <div class="p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
+                <h3 class="font-bold text-gray-800 dark:text-white mb-2">About {{ cat.name }}</h3>
+                <p class="text-gray-600 dark:text-gray-300">{{ cat.description }}</p>
             </div>
             {% endif %}
 
@@ -63,14 +63,14 @@
             {{ component('CatInteraction', { catId: cat.id }) }}
 
             <!-- Cat Fortune Cookie Section -->
-            <div class="border-t pt-6" data-controller="wisdom" data-wisdom-url-value="{{ path('app_cat_wisdom', {id: cat.id}) }}">
-                <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+            <div class="border-t dark:border-gray-700 pt-6" data-controller="wisdom" data-wisdom-url-value="{{ path('app_cat_wisdom', {id: cat.id}) }}">
+                <h3 class="font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                     <span class="text-2xl mr-2">🔮</span>
                     Cat Fortune Cookie
                 </h3>
 
-                <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 text-center">
-                    <p class="text-gray-600 mb-4">Ask {{ cat.name }} to share their ancient feline wisdom with you...</p>
+                <div class="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-xl p-6 text-center">
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Ask {{ cat.name }} to share their ancient feline wisdom with you...</p>
 
                     <button type="button"
                             data-wisdom-target="button"
@@ -83,28 +83,28 @@
                     <!-- Wisdom Display (initially hidden) -->
                     <div data-wisdom-target="display" class="hidden mt-6 space-y-4">
                         <div class="text-4xl" data-wisdom-target="emoji">{{ cat.moodEmoji }}</div>
-                        <p class="text-gray-600 italic" data-wisdom-target="prefix"></p>
-                        <p class="text-xl font-medium text-purple-800" data-wisdom-target="wisdom"></p>
-                        <div class="text-sm text-gray-500 mt-4" data-wisdom-target="lucky"></div>
+                        <p class="text-gray-600 dark:text-gray-300 italic" data-wisdom-target="prefix"></p>
+                        <p class="text-xl font-medium text-purple-800 dark:text-purple-300" data-wisdom-target="wisdom"></p>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-4" data-wisdom-target="lucky"></div>
                     </div>
                 </div>
             </div>
 
             <!-- AI Cat Therapist Section -->
-            <div class="border-t pt-6"
+            <div class="border-t dark:border-gray-700 pt-6"
                  data-controller="therapist"
                  data-therapist-url-value="{{ path('app_cat_therapy', {id: cat.id}) }}"
                  data-therapist-history-url-value="{{ path('app_cat_chat_history', {id: cat.id}) }}"
                  data-therapist-clear-url-value="{{ path('app_cat_chat_clear', {id: cat.id}) }}"
                  data-therapist-cat-name-value="{{ cat.name }}"
                  data-therapist-cat-emoji-value="{{ cat.moodEmoji }}">
-                <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+                <h3 class="font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                     <span class="text-2xl mr-2">🧠</span>
                     AI Cat Therapist
                     <span class="ml-2 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full">AI Powered</span>
                 </h3>
 
-                <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-purple-100">
+                <div class="bg-white dark:bg-gray-700 rounded-2xl overflow-hidden shadow-lg border border-purple-100 dark:border-purple-900/50 transition-colors duration-300">
                     <!-- Chat Header -->
                     <div class="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 px-5 py-4 flex items-center justify-between">
                         <div class="flex items-center">
@@ -131,7 +131,7 @@
                     </div>
 
                     <!-- Chat Messages Area -->
-                    <div data-therapist-target="chatArea" class="h-96 overflow-y-auto bg-gradient-to-b from-purple-50/50 to-pink-50/50">
+                    <div data-therapist-target="chatArea" class="h-96 overflow-y-auto bg-gradient-to-b from-purple-50/50 to-pink-50/50 dark:from-gray-800 dark:to-gray-800">
                         <div data-therapist-target="messages" class="p-4 space-y-4">
                             <!-- Messages will be added here dynamically -->
                         </div>
@@ -148,14 +148,14 @@
                     </div>
 
                     <!-- Chat Input -->
-                    <form data-action="submit->therapist#sendMessage" class="border-t border-purple-100 p-4 bg-white">
+                    <form data-action="submit->therapist#sendMessage" class="border-t border-purple-100 dark:border-gray-600 p-4 bg-white dark:bg-gray-700">
                         <div class="flex gap-3">
                             <div class="flex-1 relative">
                                 <input type="text"
                                        data-therapist-target="input"
                                        data-action="keydown->therapist#handleKeydown"
                                        placeholder="Share what's on your mind..."
-                                       class="w-full px-5 py-3 rounded-2xl border-2 border-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-300 text-gray-700 placeholder-gray-400 transition-all"
+                                       class="w-full px-5 py-3 rounded-2xl border-2 border-purple-100 dark:border-gray-600 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-300 dark:focus:border-purple-500 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 transition-all"
                                        autocomplete="off">
                             </div>
                             <button type="submit"
@@ -167,14 +167,14 @@
                                 </svg>
                             </button>
                         </div>
-                        <p class="text-xs text-gray-400 mt-3 text-center">Your conversation is saved and will be here when you return</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-3 text-center">Your conversation is saved and will be here when you return</p>
                     </form>
                 </div>
             </div>
 
             {% if not cat.adopted %}
             <!-- Adopt Button (separate from Live Component) -->
-            <div class="border-t pt-6">
+            <div class="border-t dark:border-gray-700 pt-6">
                 <form action="{{ path('app_cat_adopt', {id: cat.id}) }}" method="POST">
                     <button type="submit"
                             onclick="return confirm('Are you sure you want to adopt {{ cat.name }}? This is a big responsibility!')"
@@ -187,7 +187,7 @@
             {% endif %}
 
             <!-- Meta Info -->
-            <div class="text-center text-sm text-gray-400 pt-4 border-t">
+            <div class="text-center text-sm text-gray-400 dark:text-gray-500 pt-4 border-t dark:border-gray-700">
                 Joined the cafe on {{ cat.createdAt|date('F j, Y') }}
             </div>
         </div>
