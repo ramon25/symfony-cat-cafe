@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import { formatAiText } from '../utils/textFormatter';
 
 /**
  * AI Bonding Advice Controller
@@ -51,7 +52,7 @@ export default class extends Controller {
     }
 
     formatAdvice(text) {
-        // Convert numbered lists and basic formatting
+        // Convert numbered lists and apply markdown formatting (bold/italic)
         return text
             .split('\n')
             .map(line => {
@@ -60,10 +61,10 @@ export default class extends Controller {
                 if (numberedMatch) {
                     return `<div class="flex items-start gap-3 mb-3">
                         <span class="flex-shrink-0 w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">${numberedMatch[1]}</span>
-                        <span>${numberedMatch[2]}</span>
+                        <span>${formatAiText(numberedMatch[2])}</span>
                     </div>`;
                 }
-                return line ? `<p class="mb-2">${line}</p>` : '';
+                return line ? `<p class="mb-2">${formatAiText(line)}</p>` : '';
             })
             .join('');
     }
