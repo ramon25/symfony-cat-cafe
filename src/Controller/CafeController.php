@@ -60,6 +60,11 @@ class CafeController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
+        if (!$cat->canFeed()) {
+            $this->addFlash('warning', sprintf('%s is already well-fed and content!', $cat->getName()));
+            return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
+        }
+
         $cat->feed();
         $this->entityManager->flush();
 
@@ -79,6 +84,11 @@ class CafeController extends AbstractController
         if ($cat->isAdopted()) {
             $this->addFlash('error', 'This cat has already been adopted!');
             return $this->redirectToRoute('app_home');
+        }
+
+        if (!$cat->canPet()) {
+            $this->addFlash('warning', sprintf('%s is already at maximum happiness and too tired for pets!', $cat->getName()));
+            return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
         }
 
         $cat->pet();
@@ -102,6 +112,11 @@ class CafeController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
+        if (!$cat->canPlay()) {
+            $this->addFlash('warning', sprintf('%s is already at maximum happiness, too tired, and too full to play!', $cat->getName()));
+            return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
+        }
+
         $cat->play();
         $this->entityManager->flush();
 
@@ -121,6 +136,11 @@ class CafeController extends AbstractController
         if ($cat->isAdopted()) {
             $this->addFlash('error', 'This cat has already been adopted!');
             return $this->redirectToRoute('app_home');
+        }
+
+        if (!$cat->canRest()) {
+            $this->addFlash('warning', sprintf('%s already has full energy and is too full to rest!', $cat->getName()));
+            return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
         }
 
         $cat->rest();
@@ -146,7 +166,7 @@ class CafeController extends AbstractController
     #[Route('/cat/{id}/wisdom', name: 'app_cat_wisdom', methods: ['GET'])]
     public function wisdom(Cat $cat): JsonResponse
     {
-        $fortune = $this->wisdomService->getWisdomFromCat($cat->getName(), $cat->getMood());
+        $fortune = $this->wisdomService->getWisdomFromCat($cat);
 
         // Track wisdom achievement
         $this->achievementService->incrementStat('wisdom', $cat->getId());
@@ -353,15 +373,26 @@ class CafeController extends AbstractController
     {
         $cats = $this->catRepository->findAvailable();
         $fedCount = 0;
+        $skippedCount = 0;
 
         foreach ($cats as $cat) {
-            $cat->feed();
-            $fedCount++;
+            if ($cat->canFeed()) {
+                $cat->feed();
+                $fedCount++;
+            } else {
+                $skippedCount++;
+            }
         }
 
         $this->entityManager->flush();
 
-        $this->addFlash('success', sprintf('Fed all %d cats!', $fedCount));
+        if ($fedCount > 0 && $skippedCount > 0) {
+            $this->addFlash('success', sprintf('Fed %d cats! (%d were already well-fed)', $fedCount, $skippedCount));
+        } elseif ($fedCount > 0) {
+            $this->addFlash('success', sprintf('Fed all %d cats!', $fedCount));
+        } else {
+            $this->addFlash('info', 'All cats are already well-fed!');
+        }
 
         return $this->redirectToRoute('app_home');
     }

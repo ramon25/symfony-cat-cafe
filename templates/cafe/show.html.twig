@@ -59,6 +59,132 @@
             </div>
             {% endif %}
 
+            <!-- AI Cat Mind Reader Section -->
+            <div class="border-t dark:border-gray-700 pt-6"
+                 data-controller="ai-thought"
+                 data-ai-thought-url-value="{{ path('app_api_cat_thought', {id: cat.id}) }}">
+                <h3 class="font-bold text-gray-800 dark:text-white mb-4 flex items-center">
+                    <span class="text-2xl mr-2">💭</span>
+                    {{ cat.name }}'s Thoughts
+                    <span class="ml-2 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full">AI Powered</span>
+                </h3>
+
+                <div class="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-xl p-6">
+                    <!-- Thought Bubble -->
+                    <div class="relative">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-16 h-16 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center shadow-md">
+                                <span class="text-4xl" data-ai-thought-target="emoji">{{ cat.moodEmoji }}</span>
+                            </div>
+                            <div class="flex-1">
+                                <!-- Loading State -->
+                                <div data-ai-thought-target="loading" class="hidden">
+                                    <div class="animate-pulse flex items-center gap-2 text-purple-400">
+                                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                        </svg>
+                                        <span class="text-sm">Reading {{ cat.name }}'s mind...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Content -->
+                                <div data-ai-thought-target="content" class="hidden space-y-3">
+                                    <!-- Thought -->
+                                    <div class="bg-white dark:bg-gray-700 rounded-2xl rounded-tl-none p-4 shadow-sm relative">
+                                        <div class="absolute -left-2 top-0 w-4 h-4 bg-white dark:bg-gray-700 transform rotate-45"></div>
+                                        <p data-ai-thought-target="thought" class="text-gray-700 dark:text-gray-200 italic relative z-10"></p>
+                                    </div>
+                                    <!-- Bonding Message -->
+                                    <div class="bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg p-3">
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">
+                                            <span class="font-medium text-purple-600 dark:text-purple-400">{{ cat.bondingEmoji }} {{ cat.name }} says:</span>
+                                            <span data-ai-thought-target="bondingMessage" class="italic"></span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Error State -->
+                                <div data-ai-thought-target="error" class="hidden">
+                                    <p class="text-gray-500 dark:text-gray-400 italic">{{ cat.name }} is being mysterious right now...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Read Mind Button -->
+                    <div class="mt-4 text-center">
+                        <button type="button"
+                                data-ai-thought-target="button"
+                                data-action="click->ai-thought#loadThought"
+                                class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2 mx-auto shadow-md hover:shadow-lg text-sm">
+                            <span class="text-lg">🧠</span>
+                            <span>Read {{ cat.name }}'s Mind</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Personality Profile Section -->
+            <div class="border-t dark:border-gray-700 pt-6"
+                 data-controller="ai-personality"
+                 data-ai-personality-url-value="{{ path('app_api_cat_personality', {id: cat.id}) }}">
+                <h3 class="font-bold text-gray-800 dark:text-white mb-4 flex items-center">
+                    <span class="text-2xl mr-2">✨</span>
+                    AI Personality Profile
+                    <span class="ml-2 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full">AI Powered</span>
+                </h3>
+
+                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-6">
+                    <!-- Loading State -->
+                    <div data-ai-personality-target="loading" class="hidden">
+                        <div class="flex items-center justify-center py-8">
+                            <div class="flex items-center gap-2 text-purple-400">
+                                <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Generating personality profile...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div data-ai-personality-target="content" class="hidden space-y-4">
+                        <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4">
+                            <p data-ai-personality-target="profile" class="text-gray-700 dark:text-gray-300 whitespace-pre-line"></p>
+                        </div>
+
+                        <!-- Fun Facts -->
+                        <div>
+                            <h4 class="font-bold text-gray-800 dark:text-white text-sm mb-2 flex items-center">
+                                <span class="mr-2">🎯</span> Fun Facts
+                            </h4>
+                            <ul data-ai-personality-target="facts" class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Error State -->
+                    <div data-ai-personality-target="error" class="hidden">
+                        <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                            <p>Couldn't generate profile right now. Try again later!</p>
+                        </div>
+                    </div>
+
+                    <!-- Generate Button -->
+                    <div class="mt-4 text-center">
+                        <button type="button"
+                                data-ai-personality-target="button"
+                                data-action="click->ai-personality#loadPersonality"
+                                class="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-medium py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2 mx-auto shadow-md hover:shadow-lg text-sm">
+                            <span class="text-lg">✨</span>
+                            <span>Generate AI Profile</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Live Component: Cat Stats & Interactions -->
             {{ component('CatInteraction', { catId: cat.id }) }}
 
