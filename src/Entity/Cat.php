@@ -9,6 +9,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: CatRepository::class)]
 class Cat
 {
+    // User ownership - the user who adopted/fostered this cat
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'cats')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $owner = null;
     public const INTERACTION_FEED = 'feed';
     public const INTERACTION_PET = 'pet';
     public const INTERACTION_PLAY = 'play';
@@ -249,7 +253,7 @@ class Cat
         $this->setHunger($this->hunger - 30);
         $this->setHappiness($this->happiness + 10);
         $this->setEnergy($this->energy + 5);
-        $this->increaseBonding(self::INTERACTION_FEED);
+        // Note: Bonding is now tracked per-user via CatBonding entity
     }
 
     /**
@@ -266,7 +270,7 @@ class Cat
     {
         $this->setHappiness($this->happiness + 20);
         $this->setEnergy($this->energy - 5);
-        $this->increaseBonding(self::INTERACTION_PET);
+        // Note: Bonding is now tracked per-user via CatBonding entity
     }
 
     /**
@@ -284,7 +288,7 @@ class Cat
         $this->setHappiness($this->happiness + 25);
         $this->setEnergy($this->energy - 20);
         $this->setHunger($this->hunger + 10);
-        $this->increaseBonding(self::INTERACTION_PLAY);
+        // Note: Bonding is now tracked per-user via CatBonding entity
     }
 
     /**
@@ -301,7 +305,7 @@ class Cat
     {
         $this->setEnergy($this->energy + 30);
         $this->setHunger($this->hunger + 5);
-        $this->increaseBonding(self::INTERACTION_REST);
+        // Note: Bonding is now tracked per-user via CatBonding entity
     }
 
     /**
@@ -315,6 +319,23 @@ class Cat
     }
 
     // Bonding System Methods
+
+    /**
+     * Calculate the bonding increase amount for a given interaction type.
+     * Returns 10 for preferred interactions, 5 for others.
+     */
+    public function calculateBondingIncrease(string $interactionType): int
+    {
+        // Bonus if this is the cat's preferred interaction
+        if ($interactionType === $this->preferredInteraction) {
+            return 10; // Double bonding for preferred interaction!
+        }
+        return 5;
+    }
+
+    /**
+     * @deprecated Use CatBonding entity for user-specific bonding levels
+     */
     public function getBondingLevel(): int
     {
         return $this->bondingLevel;
@@ -589,5 +610,30 @@ class Cat
             'sleepy' => '😴',
             default => '🐱',
         };
+    }
+
+    // User Ownership Methods
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
+        return $this;
+    }
+
+    public function hasOwner(): bool
+    {
+        return $this->owner !== null;
+    }
+
+    public function isOwnedBy(?User $user): bool
+    {
+        if ($user === null || $this->owner === null) {
+            return false;
+        }
+        return $this->owner->getId() === $user->getId();
     }
 }

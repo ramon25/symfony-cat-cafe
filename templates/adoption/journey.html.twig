@@ -22,19 +22,22 @@
 
         <div class="p-6 space-y-8">
             <!-- Bonding Progress -->
+            {% set bondingLevel = bonding ? bonding.bondingLevel : 0 %}
+            {% set bondingEmoji = bonding ? bonding.bondingEmoji : '🤍' %}
+            {% set bondingMilestone = bonding ? bonding.bondingMilestone : 'Just Met' %}
             <div class="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/30 dark:to-purple-900/30 rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-bold text-gray-800 dark:text-white flex items-center">
-                        <span class="text-2xl mr-2">{{ cat.bondingEmoji }}</span>
+                        <span class="text-2xl mr-2">{{ bondingEmoji }}</span>
                         Bond with {{ cat.name }}
                     </h3>
-                    <span class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ cat.bondingLevel }}%</span>
+                    <span class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ bondingLevel }}%</span>
                 </div>
 
                 <!-- Progress Bar -->
                 <div class="relative h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div class="absolute h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full transition-all duration-500"
-                         style="width: {{ cat.bondingLevel }}%"></div>
+                         style="width: {{ bondingLevel }}%"></div>
                     <!-- Milestones -->
                     <div class="absolute top-0 left-[30%] h-full w-0.5 bg-orange-400" title="Foster unlock"></div>
                     <div class="absolute top-0 left-[50%] h-full w-0.5 bg-green-400" title="Adoption unlock"></div>
@@ -48,7 +51,7 @@
                 </div>
 
                 <p class="text-center text-purple-600 dark:text-purple-400 font-medium mt-4">
-                    {{ cat.bondingMilestone }}
+                    {{ bondingMilestone }}
                 </p>
 
                 <!-- Preferred Interaction Hint -->
@@ -114,9 +117,11 @@
                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Your Journey</h3>
 
                 <!-- Step 1: Bond -->
-                <div class="relative pl-8 pb-8 border-l-4 {{ cat.bondingLevel >= 30 ? 'border-green-400' : 'border-gray-300 dark:border-gray-600' }}">
-                    <div class="absolute -left-3 top-0 w-6 h-6 rounded-full {{ cat.bondingLevel >= 30 ? 'bg-green-400' : 'bg-gray-300 dark:bg-gray-600' }} flex items-center justify-center">
-                        {% if cat.bondingLevel >= 30 %}
+                {% set compatibilityScore = bonding ? bonding.compatibilityScore : null %}
+                {% set compatibilityLabel = bonding ? bonding.compatibilityLabel : 'Not tested' %}
+                <div class="relative pl-8 pb-8 border-l-4 {{ bondingLevel >= 30 ? 'border-green-400' : 'border-gray-300 dark:border-gray-600' }}">
+                    <div class="absolute -left-3 top-0 w-6 h-6 rounded-full {{ bondingLevel >= 30 ? 'bg-green-400' : 'bg-gray-300 dark:bg-gray-600' }} flex items-center justify-center">
+                        {% if bondingLevel >= 30 %}
                         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                         </svg>
@@ -127,7 +132,7 @@
                     <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                         <h4 class="font-bold text-gray-800 dark:text-white">Build a Bond (30%)</h4>
                         <p class="text-sm text-gray-600 dark:text-gray-300">Interact with {{ cat.name }} - feed, pet, play, and rest together!</p>
-                        {% if cat.bondingLevel < 30 %}
+                        {% if bondingLevel < 30 %}
                         <div class="mt-2">
                             <a href="{{ path('app_cat_show', {id: cat.id}) }}" class="text-purple-600 dark:text-purple-400 font-medium text-sm hover:underline">
                                 Go spend time with {{ cat.name }}
@@ -138,9 +143,9 @@
                 </div>
 
                 <!-- Step 2: Quiz -->
-                <div class="relative pl-8 pb-8 border-l-4 {{ cat.compatibilityScore is not null ? 'border-green-400' : 'border-gray-300 dark:border-gray-600' }}">
-                    <div class="absolute -left-3 top-0 w-6 h-6 rounded-full {{ cat.compatibilityScore is not null ? 'bg-green-400' : 'bg-gray-300 dark:bg-gray-600' }} flex items-center justify-center">
-                        {% if cat.compatibilityScore is not null %}
+                <div class="relative pl-8 pb-8 border-l-4 {{ compatibilityScore is not null ? 'border-green-400' : 'border-gray-300 dark:border-gray-600' }}">
+                    <div class="absolute -left-3 top-0 w-6 h-6 rounded-full {{ compatibilityScore is not null ? 'bg-green-400' : 'bg-gray-300 dark:bg-gray-600' }} flex items-center justify-center">
+                        {% if compatibilityScore is not null %}
                         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                         </svg>
@@ -151,9 +156,9 @@
                     <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                         <h4 class="font-bold text-gray-800 dark:text-white">Compatibility Quiz</h4>
                         <p class="text-sm text-gray-600 dark:text-gray-300">Take a fun quiz to see how compatible you are!</p>
-                        {% if cat.compatibilityScore is not null %}
+                        {% if compatibilityScore is not null %}
                         <p class="text-sm text-green-600 dark:text-green-400 mt-2">
-                            Score: {{ cat.compatibilityScore }}% - {{ cat.compatibilityLabel }}
+                            Score: {{ compatibilityScore }}% - {{ compatibilityLabel }}
                         </p>
                         {% else %}
                         <div class="mt-2">
@@ -196,9 +201,9 @@
                 </div>
 
                 <!-- Step 4: Strong Bond -->
-                <div class="relative pl-8 pb-8 border-l-4 {{ cat.bondingLevel >= 50 ? 'border-green-400' : 'border-gray-300 dark:border-gray-600' }}">
-                    <div class="absolute -left-3 top-0 w-6 h-6 rounded-full {{ cat.bondingLevel >= 50 ? 'bg-green-400' : 'bg-gray-300 dark:bg-gray-600' }} flex items-center justify-center">
-                        {% if cat.bondingLevel >= 50 %}
+                <div class="relative pl-8 pb-8 border-l-4 {{ bondingLevel >= 50 ? 'border-green-400' : 'border-gray-300 dark:border-gray-600' }}">
+                    <div class="absolute -left-3 top-0 w-6 h-6 rounded-full {{ bondingLevel >= 50 ? 'bg-green-400' : 'bg-gray-300 dark:bg-gray-600' }} flex items-center justify-center">
+                        {% if bondingLevel >= 50 %}
                         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                         </svg>

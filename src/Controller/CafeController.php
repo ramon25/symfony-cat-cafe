@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Cat;
+use App\Entity\CatBonding;
 use App\Entity\ChatMessage;
+use App\Entity\User;
+use App\Repository\CatBondingRepository;
 use App\Repository\CatRepository;
 use App\Repository\ChatMessageRepository;
 use App\Service\AchievementService;
@@ -17,12 +20,14 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class CafeController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CatRepository $catRepository,
+        private CatBondingRepository $catBondingRepository,
         private CatWisdomService $wisdomService,
         private CatTherapistService $therapistService,
         private ChatMessageRepository $chatMessageRepository,
@@ -49,8 +54,11 @@ class CafeController extends AbstractController
     #[Route('/cat/{id}', name: 'app_cat_show', requirements: ['id' => '\d+'])]
     public function show(Cat $cat): Response
     {
+        $bonding = $this->getUserBonding($cat);
+
         return $this->render('cafe/show.html.twig', [
             'cat' => $cat,
+            'bonding' => $bonding,
         ]);
     }
 
@@ -68,13 +76,17 @@ class CafeController extends AbstractController
         }
 
         $cat->feed();
+
+        // Track user-specific bonding
+        $this->updateUserBonding($cat, Cat::INTERACTION_FEED);
+
         $this->entityManager->flush();
 
         // Track achievements
         $this->achievementService->incrementStat('feed', $cat->getId());
         $this->checkBondingAchievements($cat);
 
-        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_FEED ? ' 💕 They LOVE being fed!' : '';
+        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_FEED ? ' They LOVE being fed!' : '';
         $this->addFlash('success', sprintf('%s has been fed and is feeling better!%s', $cat->getName(), $bonusMsg));
 
         return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
@@ -94,13 +106,17 @@ class CafeController extends AbstractController
         }
 
         $cat->pet();
+
+        // Track user-specific bonding
+        $this->updateUserBonding($cat, Cat::INTERACTION_PET);
+
         $this->entityManager->flush();
 
         // Track achievements
         $this->achievementService->incrementStat('pet', $cat->getId());
         $this->checkBondingAchievements($cat);
 
-        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_PET ? ' 💕 They LOVE being petted!' : '';
+        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_PET ? ' They LOVE being petted!' : '';
         $this->addFlash('success', sprintf('%s purrs happily!%s', $cat->getName(), $bonusMsg));
 
         return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
@@ -120,13 +136,17 @@ class CafeController extends AbstractController
         }
 
         $cat->play();
+
+        // Track user-specific bonding
+        $this->updateUserBonding($cat, Cat::INTERACTION_PLAY);
+
         $this->entityManager->flush();
 
         // Track achievements
         $this->achievementService->incrementStat('play', $cat->getId());
         $this->checkBondingAchievements($cat);
 
-        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_PLAY ? ' 💕 They LOVE playing!' : '';
+        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_PLAY ? ' They LOVE playing!' : '';
         $this->addFlash('success', sprintf('%s had so much fun playing!%s', $cat->getName(), $bonusMsg));
 
         return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
@@ -146,21 +166,61 @@ class CafeController extends AbstractController
         }
 
         $cat->rest();
+
+        // Track user-specific bonding
+        $this->updateUserBonding($cat, Cat::INTERACTION_REST);
+
         $this->entityManager->flush();
 
         // Track achievements
         $this->achievementService->incrementStat('rest', $cat->getId());
         $this->checkBondingAchievements($cat);
 
-        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_REST ? ' 💕 They LOVE resting with you!' : '';
+        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_REST ? ' They LOVE resting with you!' : '';
         $this->addFlash('success', sprintf('%s takes a peaceful nap.%s', $cat->getName(), $bonusMsg));
 
         return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
     }
 
+    /**
+     * Update user-specific bonding level when interacting with a cat.
+     * Only tracked for logged-in users.
+     */
+    private function updateUserBonding(Cat $cat, string $interactionType): void
+    {
+        /** @var User|null $user */
+        $user = $this->getUser();
+
+        if ($user === null) {
+            return; // No bonding tracking for anonymous users
+        }
+
+        $bonding = $this->catBondingRepository->getOrCreate($user, $cat);
+        $increase = $cat->calculateBondingIncrease($interactionType);
+        $bonding->increaseBonding($increase);
+    }
+
+    /**
+     * Get user-specific bonding for the current user and cat.
+     */
+    private function getUserBonding(Cat $cat): ?CatBonding
+    {
+        /** @var User|null $user */
+        $user = $this->getUser();
+
+        if ($user === null) {
+            return null;
+        }
+
+        return $this->catBondingRepository->findByUserAndCat($user, $cat);
+    }
+
     private function checkBondingAchievements(Cat $cat): void
     {
-        if ($cat->getBondingLevel() >= 80) {
+        $bonding = $this->getUserBonding($cat);
+        $bondingLevel = $bonding?->getBondingLevel() ?? 0;
+
+        if ($bondingLevel >= 80) {
             $this->achievementService->unlockAchievement('best_friends');
         }
     }
@@ -274,12 +334,19 @@ class CafeController extends AbstractController
     }
 
     #[Route('/adoptions', name: 'app_adoptions')]
+    #[IsGranted('ROLE_USER')]
     public function adoptions(): Response
     {
-        $adoptedCats = $this->catRepository->findAdopted();
+        /** @var User $user */
+        $user = $this->getUser();
+
+        // Show user's adopted and fostered cats
+        $adoptedCats = $this->catRepository->findAdoptedByUser($user);
+        $fosteredCats = $this->catRepository->findFosteredByUser($user);
 
         return $this->render('cafe/adoptions.html.twig', [
-            'cats' => $adoptedCats,
+            'adoptedCats' => $adoptedCats,
+            'fosteredCats' => $fosteredCats,
         ]);
     }
 

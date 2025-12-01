@@ -1,0 +1,118 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Leaderboard - Whiskers & Wonders{% endblock %}
+
+{% block body %}
+<div class="max-w-4xl mx-auto">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Cat Cafe Leaderboard</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">Top cat lovers in our community</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Achievement Points Leaderboard -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+            <div class="bg-gradient-to-r from-yellow-400 to-orange-500 px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <span class="mr-2">🏆</span>
+                    Top Achievement Earners
+                </h2>
+            </div>
+            <div class="p-6">
+                {% if topUsers|length > 0 %}
+                    <div class="space-y-4">
+                        {% for user in topUsers %}
+                            <div class="flex items-center justify-between {% if loop.index <= 3 %}bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20{% else %}bg-gray-50 dark:bg-gray-700{% endif %} rounded-lg p-4">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-8 h-8 flex items-center justify-center font-bold {% if loop.index == 1 %}text-yellow-500 text-xl{% elseif loop.index == 2 %}text-gray-400 text-lg{% elseif loop.index == 3 %}text-amber-600 text-lg{% else %}text-gray-500{% endif %}">
+                                        {% if loop.index == 1 %}🥇{% elseif loop.index == 2 %}🥈{% elseif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-gray-800 dark:text-white">
+                                            {{ user.username }}
+                                            {% if app.user and app.user.id == user.id %}
+                                                <span class="text-xs text-orange-500">(You)</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{ user.achievements|length }} achievements
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-orange-500 font-bold">{{ user.totalAchievementPoints }} pts</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <span class="text-4xl block mb-2">🏆</span>
+                        <p>No achievements earned yet.</p>
+                        <p class="text-sm">Be the first to climb the leaderboard!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Top Adopters Leaderboard -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+            <div class="bg-gradient-to-r from-green-400 to-emerald-500 px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <span class="mr-2">🏠</span>
+                    Top Cat Adopters
+                </h2>
+            </div>
+            <div class="p-6">
+                {% if topAdopters|length > 0 %}
+                    <div class="space-y-4">
+                        {% for user in topAdopters %}
+                            <div class="flex items-center justify-between {% if loop.index <= 3 %}bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20{% else %}bg-gray-50 dark:bg-gray-700{% endif %} rounded-lg p-4">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-8 h-8 flex items-center justify-center font-bold {% if loop.index == 1 %}text-yellow-500 text-xl{% elseif loop.index == 2 %}text-gray-400 text-lg{% elseif loop.index == 3 %}text-amber-600 text-lg{% else %}text-gray-500{% endif %}">
+                                        {% if loop.index == 1 %}🥇{% elseif loop.index == 2 %}🥈{% elseif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-gray-800 dark:text-white">
+                                            {{ user.username }}
+                                            {% if app.user and app.user.id == user.id %}
+                                                <span class="text-xs text-green-500">(You)</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                                            Member since {{ user.createdAt|date('M Y') }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-green-500 font-bold">{{ user.adoptedCats|length }} cats</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <span class="text-4xl block mb-2">🏠</span>
+                        <p>No adoptions yet.</p>
+                        <p class="text-sm">Be the first to give a cat their forever home!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if not app.user %}
+        <div class="mt-8 text-center">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 inline-block">
+                <p class="text-gray-600 dark:text-gray-400 mb-4">Want to join the leaderboard?</p>
+                <div class="flex space-x-4 justify-center">
+                    <a href="{{ path('app_register') }}"
+                       class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                        Create Account
+                    </a>
+                    <a href="{{ path('app_login') }}"
+                       class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -24,36 +24,150 @@
         {% endblock %}
     </head>
     <body class="bg-gradient-to-br from-orange-50 to-amber-100 dark:from-gray-900 dark:to-gray-800 min-h-screen transition-colors duration-300">
-        <nav class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50 transition-colors duration-300" data-controller="dark-mode">
+        {% set current_route = app.request.attributes.get('_route') %}
+
+        <nav class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md shadow-lg sticky top-0 z-50 transition-colors duration-300" data-controller="dark-mode mobile-menu">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
+                    <!-- Logo -->
                     <div class="flex items-center">
-                        <a href="{{ path('app_home') }}" class="flex items-center space-x-2">
-                            <span class="text-3xl">🐱</span>
-                            <span class="text-xl font-bold text-orange-600 dark:text-orange-400">Whiskers & Wonders</span>
+                        <a href="{{ path('app_home') }}" class="flex items-center space-x-2 group">
+                            <span class="text-3xl group-hover:animate-bounce">🐱</span>
+                            <span class="text-xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 dark:from-orange-400 dark:to-amber-300 bg-clip-text text-transparent">Whiskers & Wonders</span>
                         </a>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ path('app_home') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                            Our Cats
-                        </a>
-                        <a href="{{ path('app_cat_new') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                            Add Cat
-                        </a>
-                        <a href="{{ path('app_cat_new_ai') }}" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
-                            <span class="mr-1">✨</span>
-                            AI Generator
-                        <a href="{{ path('app_matchmaker') }}" class="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
-                            <span class="mr-1">🤖</span>
-                            AI Match
-                        </a>
-                        <a href="{{ path('app_adoptions') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                            Adoptions
-                        </a>
-                        <a href="{{ path('app_achievements') }}" class="text-gray-600 dark:text-gray-300 hover:text-yellow-600 dark:hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
-                            <span class="mr-1">🏆</span>
-                            Achievements
-                        </a>
+
+                    <!-- Desktop Navigation -->
+                    <div class="hidden lg:flex items-center space-x-1">
+                        <!-- Cats Section -->
+                        <div class="flex items-center px-2 border-r border-gray-200 dark:border-gray-700">
+                            <a href="{{ path('app_home') }}" class="nav-link {{ current_route == 'app_home' ? 'nav-link-active' : '' }}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                                </svg>
+                                <span>Our Cats</span>
+                            </a>
+                            {% if is_granted('ROLE_USER') %}
+                                <a href="{{ path('app_cat_new') }}" class="nav-link {{ current_route == 'app_cat_new' ? 'nav-link-active' : '' }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    <span>Add Cat</span>
+                                </a>
+                            {% endif %}
+                        </div>
+
+                        {% if is_granted('ROLE_USER') %}
+                            <!-- AI Features Section -->
+                            <div class="flex items-center px-2 border-r border-gray-200 dark:border-gray-700">
+                                <a href="{{ path('app_cat_new_ai') }}" class="nav-link nav-link-ai {{ current_route == 'app_cat_new_ai' ? 'nav-link-active' : '' }}">
+                                    <span class="text-sm">✨</span>
+                                    <span>AI Generator</span>
+                                </a>
+                                <a href="{{ path('app_matchmaker') }}" class="nav-link nav-link-ai {{ current_route == 'app_matchmaker' ? 'nav-link-active' : '' }}">
+                                    <span class="text-sm">🤖</span>
+                                    <span>AI Match</span>
+                                </a>
+                            </div>
+
+                            <!-- Activity Section -->
+                            <div class="flex items-center px-2 border-r border-gray-200 dark:border-gray-700">
+                                <a href="{{ path('app_adoptions') }}" class="nav-link {{ current_route == 'app_adoptions' ? 'nav-link-active' : '' }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                    <span>Adoptions</span>
+                                </a>
+                                <a href="{{ path('app_achievements') }}" class="nav-link {{ current_route == 'app_achievements' ? 'nav-link-active' : '' }}">
+                                    <span class="text-sm">🏆</span>
+                                    <span>Achievements</span>
+                                </a>
+                            </div>
+                        {% endif %}
+
+                        <!-- Leaderboard -->
+                        <div class="flex items-center px-2">
+                            <a href="{{ path('app_leaderboard') }}" class="nav-link {{ current_route == 'app_leaderboard' ? 'nav-link-active' : '' }}">
+                                <span class="text-sm">📊</span>
+                                <span>Leaderboard</span>
+                            </a>
+                        </div>
+
+                        <!-- Dark Mode Toggle -->
+                        <button type="button"
+                                data-action="click->dark-mode#toggle"
+                                class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-110"
+                                title="Toggle dark mode">
+                            <svg data-dark-mode-target="icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                            </svg>
+                        </button>
+
+                        <!-- User Menu -->
+                        {% if app.user %}
+                            <div class="relative ml-2" data-controller="dropdown">
+                                <button type="button"
+                                        data-action="click->dropdown#toggle"
+                                        class="flex items-center space-x-2 bg-orange-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-orange-100 dark:hover:bg-gray-600 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200">
+                                    <span class="w-6 h-6 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                        {{ app.user.username|slice(0, 1)|upper }}
+                                    </span>
+                                    <span class="hidden xl:inline">{{ app.user.username }}</span>
+                                    <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div data-dropdown-target="menu"
+                                     class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-2 z-50 border border-gray-200 dark:border-gray-700 dropdown-menu">
+                                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ app.user.username }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Cat Enthusiast</p>
+                                    </div>
+                                    <a href="{{ path('app_profile') }}"
+                                       class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                        My Profile
+                                    </a>
+                                    <a href="{{ path('app_achievements') }}"
+                                       class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                        <span class="mr-3">🏆</span>
+                                        My Achievements
+                                    </a>
+                                    <a href="{{ path('app_adoptions') }}"
+                                       class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                        </svg>
+                                        My Adoptions
+                                    </a>
+                                    <hr class="my-2 border-gray-200 dark:border-gray-700">
+                                    <a href="{{ path('app_logout') }}"
+                                       class="flex items-center px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                        </svg>
+                                        Sign Out
+                                    </a>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="flex items-center space-x-2 ml-2">
+                                <a href="{{ path('app_login') }}"
+                                   class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                                    Sign In
+                                </a>
+                                <a href="{{ path('app_register') }}"
+                                   class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105">
+                                    Join Now
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <div class="flex items-center space-x-2 lg:hidden">
                         <button type="button"
                                 data-action="click->dark-mode#toggle"
                                 class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -62,7 +176,121 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
                             </svg>
                         </button>
+                        <button type="button"
+                                data-action="click->mobile-menu#toggle"
+                                class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <svg data-mobile-menu-target="openIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                            <svg data-mobile-menu-target="closeIcon" class="hidden w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Overlay -->
+            <div data-mobile-menu-target="overlay"
+                 data-action="click->mobile-menu#close"
+                 class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden"></div>
+
+            <!-- Mobile Menu Panel -->
+            <div data-mobile-menu-target="menu"
+                 class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-out lg:hidden overflow-y-auto">
+                <div class="p-6">
+                    <!-- Mobile Menu Header -->
+                    <div class="flex items-center justify-between mb-8">
+                        <span class="text-xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 dark:from-orange-400 dark:to-amber-300 bg-clip-text text-transparent">Menu</span>
+                        <button type="button" data-action="click->mobile-menu#close" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    {% if app.user %}
+                        <!-- User Info -->
+                        <div class="flex items-center space-x-3 p-4 bg-orange-50 dark:bg-gray-700 rounded-xl mb-6">
+                            <span class="w-10 h-10 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center text-white text-lg font-bold">
+                                {{ app.user.username|slice(0, 1)|upper }}
+                            </span>
+                            <div>
+                                <p class="font-medium text-gray-900 dark:text-white">{{ app.user.username }}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Cat Enthusiast</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Mobile Nav Links -->
+                    <nav class="space-y-2">
+                        <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Explore</p>
+                        <a href="{{ path('app_home') }}" class="mobile-nav-link {{ current_route == 'app_home' ? 'mobile-nav-link-active' : '' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                            </svg>
+                            <span>Our Cats</span>
+                        </a>
+                        <a href="{{ path('app_leaderboard') }}" class="mobile-nav-link {{ current_route == 'app_leaderboard' ? 'mobile-nav-link-active' : '' }}">
+                            <span class="text-lg">📊</span>
+                            <span>Leaderboard</span>
+                        </a>
+
+                        {% if is_granted('ROLE_USER') %}
+                            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mt-6 mb-2">Manage</p>
+                            <a href="{{ path('app_cat_new') }}" class="mobile-nav-link {{ current_route == 'app_cat_new' ? 'mobile-nav-link-active' : '' }}">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span>Add Cat</span>
+                            </a>
+                            <a href="{{ path('app_adoptions') }}" class="mobile-nav-link {{ current_route == 'app_adoptions' ? 'mobile-nav-link-active' : '' }}">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                                <span>My Adoptions</span>
+                            </a>
+                            <a href="{{ path('app_achievements') }}" class="mobile-nav-link {{ current_route == 'app_achievements' ? 'mobile-nav-link-active' : '' }}">
+                                <span class="text-lg">🏆</span>
+                                <span>Achievements</span>
+                            </a>
+
+                            <p class="text-xs font-semibold text-purple-400 dark:text-purple-500 uppercase tracking-wider mt-6 mb-2">AI Features</p>
+                            <a href="{{ path('app_cat_new_ai') }}" class="mobile-nav-link mobile-nav-link-ai {{ current_route == 'app_cat_new_ai' ? 'mobile-nav-link-active' : '' }}">
+                                <span class="text-lg">✨</span>
+                                <span>AI Generator</span>
+                            </a>
+                            <a href="{{ path('app_matchmaker') }}" class="mobile-nav-link mobile-nav-link-ai {{ current_route == 'app_matchmaker' ? 'mobile-nav-link-active' : '' }}">
+                                <span class="text-lg">🤖</span>
+                                <span>AI Match</span>
+                            </a>
+
+                            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mt-6 mb-2">Account</p>
+                            <a href="{{ path('app_profile') }}" class="mobile-nav-link {{ current_route == 'app_profile' ? 'mobile-nav-link-active' : '' }}">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span>My Profile</span>
+                            </a>
+                            <a href="{{ path('app_logout') }}" class="mobile-nav-link text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                </svg>
+                                <span>Sign Out</span>
+                            </a>
+                        {% else %}
+                            <div class="mt-8 space-y-3">
+                                <a href="{{ path('app_login') }}"
+                                   class="block w-full text-center py-3 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    Sign In
+                                </a>
+                                <a href="{{ path('app_register') }}"
+                                   class="block w-full text-center py-3 px-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-medium hover:from-orange-600 hover:to-amber-600 transition-all shadow-md">
+                                    Join Now
+                                </a>
+                            </div>
+                        {% endif %}
+                    </nav>
                 </div>
             </div>
         </nav>
