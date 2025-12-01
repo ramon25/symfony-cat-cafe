@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import { formatAiText } from '../utils/textFormatter';
 
 /**
  * AI Cat Thought Controller
@@ -27,10 +28,11 @@ export default class extends Controller {
             const data = await response.json();
 
             if (data.thought) {
-                this.thoughtTarget.textContent = data.thought;
+                // Apply markdown formatting (bold/italic) for AI-generated thoughts
+                this.thoughtTarget.innerHTML = formatAiText(data.thought);
 
                 if (data.bondingMessage && this.hasBondingMessageTarget) {
-                    this.bondingMessageTarget.textContent = data.bondingMessage;
+                    this.bondingMessageTarget.innerHTML = formatAiText(data.bondingMessage);
                 }
 
                 if (data.moodEmoji && this.hasEmojiTarget) {
