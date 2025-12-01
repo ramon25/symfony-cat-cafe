@@ -37,22 +37,29 @@
                         <a href="{{ path('app_home') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Our Cats
                         </a>
-                        <a href="{{ path('app_cat_new') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                            Add Cat
-                        </a>
-                        <a href="{{ path('app_cat_new_ai') }}" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
-                            <span class="mr-1">✨</span>
-                            AI Generator
-                        <a href="{{ path('app_matchmaker') }}" class="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
-                            <span class="mr-1">🤖</span>
-                            AI Match
-                        </a>
-                        <a href="{{ path('app_adoptions') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                            Adoptions
-                        </a>
-                        <a href="{{ path('app_achievements') }}" class="text-gray-600 dark:text-gray-300 hover:text-yellow-600 dark:hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
-                            <span class="mr-1">🏆</span>
-                            Achievements
+                        {% if is_granted('ROLE_USER') %}
+                            <a href="{{ path('app_cat_new') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                Add Cat
+                            </a>
+                            <a href="{{ path('app_cat_new_ai') }}" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                                <span class="mr-1">✨</span>
+                                AI Generator
+                            </a>
+                            <a href="{{ path('app_matchmaker') }}" class="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                                <span class="mr-1">🤖</span>
+                                AI Match
+                            </a>
+                            <a href="{{ path('app_adoptions') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                Adoptions
+                            </a>
+                            <a href="{{ path('app_achievements') }}" class="text-gray-600 dark:text-gray-300 hover:text-yellow-600 dark:hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                                <span class="mr-1">🏆</span>
+                                Achievements
+                            </a>
+                        {% endif %}
+                        <a href="{{ path('app_leaderboard') }}" class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            <span class="mr-1">📊</span>
+                            Leaderboard
                         </a>
                         <button type="button"
                                 data-action="click->dark-mode#toggle"
@@ -62,6 +69,45 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
                             </svg>
                         </button>
+
+                        <!-- User Menu -->
+                        {% if app.user %}
+                            <div class="relative" data-controller="dropdown">
+                                <button type="button"
+                                        data-action="click->dropdown#toggle"
+                                        class="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                    <span>{{ app.user.username }}</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div data-dropdown-target="menu"
+                                     class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 border border-gray-200 dark:border-gray-700">
+                                    <a href="{{ path('app_profile') }}"
+                                       class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        My Profile
+                                    </a>
+                                    <a href="{{ path('app_achievements') }}"
+                                       class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        My Achievements
+                                    </a>
+                                    <hr class="my-2 border-gray-200 dark:border-gray-700">
+                                    <a href="{{ path('app_logout') }}"
+                                       class="block px-4 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        Sign Out
+                                    </a>
+                                </div>
+                            </div>
+                        {% else %}
+                            <a href="{{ path('app_login') }}"
+                               class="text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                Sign In
+                            </a>
+                            <a href="{{ path('app_register') }}"
+                               class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                Join Now
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

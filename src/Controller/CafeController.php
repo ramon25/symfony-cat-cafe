@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Cat;
 use App\Entity\ChatMessage;
+use App\Entity\User;
 use App\Repository\CatRepository;
 use App\Repository\ChatMessageRepository;
 use App\Service\AchievementService;
@@ -16,6 +17,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class CafeController extends AbstractController
 {
@@ -272,12 +274,19 @@ class CafeController extends AbstractController
     }
 
     #[Route('/adoptions', name: 'app_adoptions')]
+    #[IsGranted('ROLE_USER')]
     public function adoptions(): Response
     {
-        $adoptedCats = $this->catRepository->findAdopted();
+        /** @var User $user */
+        $user = $this->getUser();
+
+        // Show user's adopted and fostered cats
+        $adoptedCats = $this->catRepository->findAdoptedByUser($user);
+        $fosteredCats = $this->catRepository->findFosteredByUser($user);
 
         return $this->render('cafe/adoptions.html.twig', [
-            'cats' => $adoptedCats,
+            'adoptedCats' => $adoptedCats,
+            'fosteredCats' => $fosteredCats,
         ]);
     }
 

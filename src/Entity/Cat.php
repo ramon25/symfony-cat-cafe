@@ -9,6 +9,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: CatRepository::class)]
 class Cat
 {
+    // User ownership - the user who adopted/fostered this cat
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'cats')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $owner = null;
     public const INTERACTION_FEED = 'feed';
     public const INTERACTION_PET = 'pet';
     public const INTERACTION_PLAY = 'play';
@@ -532,5 +536,30 @@ class Cat
             'sleepy' => '😴',
             default => '🐱',
         };
+    }
+
+    // User Ownership Methods
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
+        return $this;
+    }
+
+    public function hasOwner(): bool
+    {
+        return $this->owner !== null;
+    }
+
+    public function isOwnedBy(?User $user): bool
+    {
+        if ($user === null || $this->owner === null) {
+            return false;
+        }
+        return $this->owner->getId() === $user->getId();
     }
 }
