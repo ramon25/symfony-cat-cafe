@@ -12,6 +12,8 @@ framework:
         routing:
             # Route cat stat updates to sync transport
             'App\Message\UpdateCatStatsMessage': sync
+            # Route cat movement messages to sync transport
+            'App\Message\CatMovementMessage': sync
 
 # when@test:
 #    framework:

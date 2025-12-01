@@ -33,10 +33,14 @@
                 Refresh
             </button>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div class="p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
-                <p class="text-3xl font-bold text-orange-600 dark:text-orange-400 transition-transform duration-300" data-live-stats-target="availableCount">{{ cats|length }}</p>
-                <p class="text-gray-600 dark:text-gray-300">Available Cats</p>
+                <p class="text-3xl font-bold text-orange-600 dark:text-orange-400 transition-transform duration-300" data-live-stats-target="inCafeCount">{{ cats|length }}</p>
+                <p class="text-gray-600 dark:text-gray-300">In Cafe</p>
+            </div>
+            <div class="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 transition-transform duration-300" data-live-stats-target="awayCount">{{ catsAway|length }}</p>
+                <p class="text-gray-600 dark:text-gray-300">Out Exploring</p>
             </div>
             <div class="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
                 <p class="text-3xl font-bold text-green-600 dark:text-green-400 transition-transform duration-300" data-live-stats-target="adoptedCount">{{ adoptedCount }}</p>
@@ -44,7 +48,7 @@
             </div>
             <div class="p-4 bg-red-50 dark:bg-red-900/30 rounded-lg">
                 <p class="text-3xl font-bold text-red-600 dark:text-red-400 transition-transform duration-300" data-live-stats-target="hungryCount">{{ hungryCats|length }}</p>
-                <p class="text-gray-600 dark:text-gray-300">Hungry Cats 🍽️</p>
+                <p class="text-gray-600 dark:text-gray-300">Hungry Cats</p>
             </div>
         </div>
 
@@ -58,84 +62,125 @@
         </div>
     </div>
 
-    <!-- Cat Grid -->
+    <!-- Cats In Cafe -->
     {% if cats|length > 0 %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for cat in cats %}
-        <div class="cat-card bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300" data-cat-id="{{ cat.id }}">
-            <!-- Cat Header -->
-            <div class="bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-600 dark:to-amber-600 p-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-2xl font-bold text-white">{{ cat.name }}</h3>
-                        <p class="text-orange-100">{{ cat.breed }}</p>
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+            <span>Cats at the Cafe</span>
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for cat in cats %}
+            <div class="cat-card bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300" data-cat-id="{{ cat.id }}">
+                <!-- Cat Header -->
+                <div class="bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-600 dark:to-amber-600 p-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-2xl font-bold text-white">{{ cat.name }}</h3>
+                            <p class="text-orange-100">{{ cat.breed }}</p>
+                        </div>
+                        <span class="text-4xl transition-transform duration-300" data-stat="moodEmoji">{{ cat.moodEmoji }}</span>
                     </div>
-                    <span class="text-4xl transition-transform duration-300" data-stat="moodEmoji">{{ cat.moodEmoji }}</span>
+                </div>
+
+                <!-- Cat Info -->
+                <div class="p-4 space-y-4">
+                    <div class="flex justify-between text-sm text-gray-600 dark:text-gray-300">
+                        <span>{{ cat.age }} years old</span>
+                        <span>{{ cat.color }}</span>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="space-y-2">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
+                                <span>Hunger</span>
+                                <span class="transition-all duration-300" data-stat="hunger-value">{{ cat.hunger }}%</span>
+                            </div>
+                            <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="stat-bar bg-red-400 rounded-full h-2 transition-all duration-500" data-stat="hunger-bar" style="width: {{ cat.hunger }}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
+                                <span>Happiness</span>
+                                <span class="transition-all duration-300" data-stat="happiness-value">{{ cat.happiness }}%</span>
+                            </div>
+                            <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="stat-bar bg-green-400 rounded-full h-2 transition-all duration-500" data-stat="happiness-bar" style="width: {{ cat.happiness }}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
+                                <span>Energy</span>
+                                <span class="transition-all duration-300" data-stat="energy-value">{{ cat.energy }}%</span>
+                            </div>
+                            <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="stat-bar bg-blue-400 rounded-full h-2 transition-all duration-500" data-stat="energy-bar" style="width: {{ cat.energy }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mood -->
+                    <div class="text-center py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <span class="text-sm text-gray-600 dark:text-gray-300">Feeling: </span>
+                        <span class="font-semibold capitalize text-gray-800 dark:text-white" data-stat="mood">{{ cat.mood }}</span>
+                    </div>
+
+                    <!-- Action Button -->
+                    <a href="{{ path('app_cat_show', {id: cat.id}) }}"
+                       class="block w-full text-center bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                        Visit {{ cat.name }}
+                    </a>
                 </div>
             </div>
-
-            <!-- Cat Info -->
-            <div class="p-4 space-y-4">
-                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-300">
-                    <span>🎂 {{ cat.age }} years old</span>
-                    <span>🎨 {{ cat.color }}</span>
-                </div>
-
-                <!-- Stats -->
-                <div class="space-y-2">
-                    <div>
-                        <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
-                            <span>Hunger</span>
-                            <span class="transition-all duration-300" data-stat="hunger-value">{{ cat.hunger }}%</span>
-                        </div>
-                        <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div class="stat-bar bg-red-400 rounded-full h-2 transition-all duration-500" data-stat="hunger-bar" style="width: {{ cat.hunger }}%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
-                            <span>Happiness</span>
-                            <span class="transition-all duration-300" data-stat="happiness-value">{{ cat.happiness }}%</span>
-                        </div>
-                        <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div class="stat-bar bg-green-400 rounded-full h-2 transition-all duration-500" data-stat="happiness-bar" style="width: {{ cat.happiness }}%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
-                            <span>Energy</span>
-                            <span class="transition-all duration-300" data-stat="energy-value">{{ cat.energy }}%</span>
-                        </div>
-                        <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div class="stat-bar bg-blue-400 rounded-full h-2 transition-all duration-500" data-stat="energy-bar" style="width: {{ cat.energy }}%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mood -->
-                <div class="text-center py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <span class="text-sm text-gray-600 dark:text-gray-300">Feeling: </span>
-                    <span class="font-semibold capitalize text-gray-800 dark:text-white" data-stat="mood">{{ cat.mood }}</span>
-                </div>
-
-                <!-- Action Button -->
-                <a href="{{ path('app_cat_show', {id: cat.id}) }}"
-                   class="block w-full text-center bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                    Visit {{ cat.name }}
-                </a>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
     {% else %}
     <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-md transition-colors duration-300">
-        <span class="text-6xl mb-4 block">😿</span>
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">No cats in the cafe yet!</h2>
-        <p class="text-gray-600 dark:text-gray-300 mb-4">Be the first to add a furry friend to our family.</p>
+        <span class="text-6xl mb-4 block">😴</span>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">No cats at the cafe right now</h2>
+        <p class="text-gray-600 dark:text-gray-300 mb-4">
+            {% if catsAway|length > 0 %}
+            All our cats are out exploring! Check back soon - they come and go throughout the day.
+            {% else %}
+            Be the first to add a furry friend to our family.
+            {% endif %}
+        </p>
+        {% if catsAway|length == 0 %}
         <a href="{{ path('app_cat_new') }}"
            class="inline-block bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-full transition-colors">
             Add a Cat
         </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Cats Out Exploring -->
+    {% if catsAway|length > 0 %}
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+            <span>Out Exploring</span>
+        </h2>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 transition-colors duration-300">
+            <p class="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+                These cats are currently out on adventures! They'll be back soon.
+            </p>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {% for cat in catsAway %}
+                <a href="{{ path('app_cat_show', {id: cat.id}) }}"
+                   class="group p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl opacity-50 group-hover:opacity-100 transition-opacity">{{ cat.moodEmoji }}</span>
+                        <div>
+                            <p class="font-bold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ cat.name }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ cat.breed }}</p>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
     </div>
     {% endif %}
 </div>

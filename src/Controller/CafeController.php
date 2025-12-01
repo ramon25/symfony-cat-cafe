@@ -40,12 +40,14 @@ class CafeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(): Response
     {
-        $cats = $this->catRepository->findAvailable();
+        $catsInCafe = $this->catRepository->findInCafe();
+        $catsAway = $this->catRepository->findAway();
         $adoptedCount = $this->catRepository->countAdopted();
         $hungryCats = $this->catRepository->findHungryCats();
 
         return $this->render('cafe/index.html.twig', [
-            'cats' => $cats,
+            'cats' => $catsInCafe,
+            'catsAway' => $catsAway,
             'adoptedCount' => $adoptedCount,
             'hungryCats' => $hungryCats,
         ]);
@@ -68,6 +70,11 @@ class CafeController extends AbstractController
         if ($cat->isAdopted()) {
             $this->addFlash('error', 'This cat has already been adopted!');
             return $this->redirectToRoute('app_home');
+        }
+
+        if (!$cat->isInCafe()) {
+            $this->addFlash('warning', sprintf('%s is currently out exploring and not at the cafe!', $cat->getName()));
+            return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
         }
 
         if (!$cat->canFeed()) {
@@ -100,6 +107,11 @@ class CafeController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
+        if (!$cat->isInCafe()) {
+            $this->addFlash('warning', sprintf('%s is currently out exploring and not at the cafe!', $cat->getName()));
+            return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
+        }
+
         if (!$cat->canPet()) {
             $this->addFlash('warning', sprintf('%s is already at maximum happiness and too tired for pets!', $cat->getName()));
             return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
@@ -130,6 +142,11 @@ class CafeController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
+        if (!$cat->isInCafe()) {
+            $this->addFlash('warning', sprintf('%s is currently out exploring and not at the cafe!', $cat->getName()));
+            return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
+        }
+
         if (!$cat->canPlay()) {
             $this->addFlash('warning', sprintf('%s is already at maximum happiness, too tired, and too full to play!', $cat->getName()));
             return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
@@ -158,6 +175,11 @@ class CafeController extends AbstractController
         if ($cat->isAdopted()) {
             $this->addFlash('error', 'This cat has already been adopted!');
             return $this->redirectToRoute('app_home');
+        }
+
+        if (!$cat->isInCafe()) {
+            $this->addFlash('warning', sprintf('%s is currently out exploring and not at the cafe!', $cat->getName()));
+            return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
         }
 
         if (!$cat->canRest()) {
@@ -440,7 +462,7 @@ class CafeController extends AbstractController
     #[Route('/feed-all', name: 'app_feed_all', methods: ['POST'])]
     public function feedAll(): Response
     {
-        $cats = $this->catRepository->findAvailable();
+        $cats = $this->catRepository->findInCafe();
         $fedCount = 0;
         $skippedCount = 0;
 
@@ -469,7 +491,8 @@ class CafeController extends AbstractController
     #[Route('/api/cats/stats', name: 'app_api_cats_stats', methods: ['GET'])]
     public function apiCatsStats(): JsonResponse
     {
-        $cats = $this->catRepository->findAvailable();
+        $catsInCafe = $this->catRepository->findInCafe();
+        $catsAway = $this->catRepository->findAway();
         $hungryCats = $this->catRepository->findHungryCats();
         $adoptedCount = $this->catRepository->countAdopted();
 
@@ -481,13 +504,28 @@ class CafeController extends AbstractController
             'energy' => $cat->getEnergy(),
             'mood' => $cat->getMood(),
             'moodEmoji' => $cat->getMoodEmoji(),
-        ], $cats);
+            'inCafe' => $cat->isInCafe(),
+            'locationEmoji' => $cat->getLocationEmoji(),
+        ], $catsInCafe);
+
+        $catsAwayData = array_map(fn(Cat $cat) => [
+            'id' => $cat->getId(),
+            'name' => $cat->getName(),
+            'mood' => $cat->getMood(),
+            'moodEmoji' => $cat->getMoodEmoji(),
+            'inCafe' => $cat->isInCafe(),
+            'locationEmoji' => $cat->getLocationEmoji(),
+            'leftAt' => $cat->getLeftCafeAt()?->format('H:i'),
+        ], $catsAway);
 
         return new JsonResponse([
             'success' => true,
             'cats' => $catsData,
+            'catsAway' => $catsAwayData,
             'summary' => [
-                'availableCount' => count($cats),
+                'inCafeCount' => count($catsInCafe),
+                'awayCount' => count($catsAway),
+                'availableCount' => count($catsInCafe) + count($catsAway),
                 'adoptedCount' => $adoptedCount,
                 'hungryCount' => count($hungryCats),
             ],

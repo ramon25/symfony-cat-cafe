@@ -78,6 +78,12 @@ class CatInteraction
     {
         $cat = $this->getCat();
         if ($cat && !$cat->isAdopted()) {
+            if (!$cat->isInCafe()) {
+                $this->lastAction = 'error';
+                $this->actionMessage = "{$cat->getName()} is currently out exploring and not at the cafe!";
+                $this->bondingMessage = '';
+                return;
+            }
             if (!$cat->canFeed()) {
                 $this->lastAction = 'error';
                 $this->actionMessage = "{$cat->getName()} is already well-fed and content!";
@@ -101,6 +107,12 @@ class CatInteraction
     {
         $cat = $this->getCat();
         if ($cat && !$cat->isAdopted()) {
+            if (!$cat->isInCafe()) {
+                $this->lastAction = 'error';
+                $this->actionMessage = "{$cat->getName()} is currently out exploring and not at the cafe!";
+                $this->bondingMessage = '';
+                return;
+            }
             if (!$cat->canPet()) {
                 $this->lastAction = 'error';
                 $this->actionMessage = "{$cat->getName()} is already at maximum happiness and too tired for pets!";
@@ -124,6 +136,12 @@ class CatInteraction
     {
         $cat = $this->getCat();
         if ($cat && !$cat->isAdopted()) {
+            if (!$cat->isInCafe()) {
+                $this->lastAction = 'error';
+                $this->actionMessage = "{$cat->getName()} is currently out exploring and not at the cafe!";
+                $this->bondingMessage = '';
+                return;
+            }
             if (!$cat->canPlay()) {
                 $this->lastAction = 'error';
                 $this->actionMessage = "{$cat->getName()} is already at maximum happiness, too tired, and too full to play!";
@@ -147,6 +165,12 @@ class CatInteraction
     {
         $cat = $this->getCat();
         if ($cat && !$cat->isAdopted()) {
+            if (!$cat->isInCafe()) {
+                $this->lastAction = 'error';
+                $this->actionMessage = "{$cat->getName()} is currently out exploring and not at the cafe!";
+                $this->bondingMessage = '';
+                return;
+            }
             if (!$cat->canRest()) {
                 $this->lastAction = 'error';
                 $this->actionMessage = "{$cat->getName()} already has full energy and is too full to rest!";
