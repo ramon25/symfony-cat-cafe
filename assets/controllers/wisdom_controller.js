@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
-import { formatAiText } from '../utils/textFormatter';
+import { formatAiText } from '../utils/textFormatter.js';
 
 /**
  * Cat Wisdom Fortune Controller
