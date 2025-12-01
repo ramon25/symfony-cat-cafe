@@ -63,14 +63,26 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for cat in cats %}
         <div class="cat-card bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300" data-cat-id="{{ cat.id }}">
-            <!-- Cat Header -->
+            <!-- Cat Header with AI Image -->
             <div class="bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-600 dark:to-amber-600 p-4">
                 <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-2xl font-bold text-white">{{ cat.name }}</h3>
-                        <p class="text-orange-100">{{ cat.breed }}</p>
+                    <div class="flex items-center gap-3">
+                        <!-- AI Image or Emoji -->
+                        {% if cat.hasAiImage %}
+                        <img src="{{ cat.aiImageDataUrl }}"
+                             alt="{{ cat.name }}"
+                             class="w-16 h-16 rounded-full object-cover border-2 border-white/30 shadow-lg">
+                        {% else %}
+                        <div class="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
+                            <span class="text-3xl" data-stat="moodEmoji">{{ cat.moodEmoji }}</span>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="text-2xl font-bold text-white">{{ cat.name }}</h3>
+                            <p class="text-orange-100">{{ cat.breed }}</p>
+                        </div>
                     </div>
-                    <span class="text-4xl transition-transform duration-300" data-stat="moodEmoji">{{ cat.moodEmoji }}</span>
+                    <span class="text-2xl transition-transform duration-300" data-stat="moodEmoji">{{ cat.moodEmoji }}</span>
                 </div>
             </div>
 
