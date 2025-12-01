@@ -102,6 +102,16 @@ class Cat
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $aiGeneratedAt = null;
 
+    // Cafe presence tracking - whether the cat is currently at the cafe
+    #[ORM\Column]
+    private bool $inCafe = true;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $lastVisitAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $leftCafeAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -578,5 +588,79 @@ class Cat
             return false;
         }
         return $this->owner->getId() === $user->getId();
+    }
+
+    // Cafe Presence Methods
+    public function isInCafe(): bool
+    {
+        return $this->inCafe;
+    }
+
+    public function setInCafe(bool $inCafe): static
+    {
+        $this->inCafe = $inCafe;
+        return $this;
+    }
+
+    public function getLastVisitAt(): ?\DateTimeImmutable
+    {
+        return $this->lastVisitAt;
+    }
+
+    public function setLastVisitAt(?\DateTimeImmutable $lastVisitAt): static
+    {
+        $this->lastVisitAt = $lastVisitAt;
+        return $this;
+    }
+
+    public function getLeftCafeAt(): ?\DateTimeImmutable
+    {
+        return $this->leftCafeAt;
+    }
+
+    public function setLeftCafeAt(?\DateTimeImmutable $leftCafeAt): static
+    {
+        $this->leftCafeAt = $leftCafeAt;
+        return $this;
+    }
+
+    /**
+     * Cat arrives at the cafe
+     */
+    public function arriveAtCafe(): static
+    {
+        $this->inCafe = true;
+        $this->lastVisitAt = new \DateTimeImmutable();
+        $this->leftCafeAt = null;
+        return $this;
+    }
+
+    /**
+     * Cat leaves the cafe
+     */
+    public function leaveCafe(): static
+    {
+        $this->inCafe = false;
+        $this->leftCafeAt = new \DateTimeImmutable();
+        return $this;
+    }
+
+    /**
+     * Get the cat's location status text
+     */
+    public function getLocationStatus(): string
+    {
+        if ($this->inCafe) {
+            return 'At the cafe';
+        }
+        return 'Out exploring';
+    }
+
+    /**
+     * Get emoji representing cat's location
+     */
+    public function getLocationEmoji(): string
+    {
+        return $this->inCafe ? '🏠' : '🌳';
     }
 }

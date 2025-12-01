@@ -20,7 +20,8 @@ final class UpdateCatStatsHandler
 
     public function __invoke(UpdateCatStatsMessage $message): void
     {
-        $cats = $this->catRepository->findAvailable();
+        // Only update cats that are currently at the cafe
+        $cats = $this->catRepository->findInCafe();
         $updatedCount = 0;
 
         foreach ($cats as $cat) {
@@ -43,7 +44,7 @@ final class UpdateCatStatsHandler
 
         $this->entityManager->flush();
 
-        $this->logger?->info('Updated stats for {count} cats', [
+        $this->logger?->info('Updated stats for {count} cats in cafe', [
             'count' => $updatedCount,
             'hunger_increase' => $message->hungerIncrease,
             'energy_decrease' => $message->energyDecrease,

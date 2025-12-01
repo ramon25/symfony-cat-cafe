@@ -118,4 +118,68 @@ class CatRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find cats currently at the cafe (not adopted and in cafe)
+     *
+     * @return Cat[]
+     */
+    public function findInCafe(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.adopted = :adopted')
+            ->andWhere('c.inCafe = :inCafe')
+            ->setParameter('adopted', false)
+            ->setParameter('inCafe', true)
+            ->orderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Find cats currently away from the cafe (not adopted and not in cafe)
+     *
+     * @return Cat[]
+     */
+    public function findAway(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.adopted = :adopted')
+            ->andWhere('c.inCafe = :inCafe')
+            ->setParameter('adopted', false)
+            ->setParameter('inCafe', false)
+            ->orderBy('c.leftCafeAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Count cats currently at the cafe
+     */
+    public function countInCafe(): int
+    {
+        return $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->andWhere('c.adopted = :adopted')
+            ->andWhere('c.inCafe = :inCafe')
+            ->setParameter('adopted', false)
+            ->setParameter('inCafe', true)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Count cats currently away from the cafe
+     */
+    public function countAway(): int
+    {
+        return $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->andWhere('c.adopted = :adopted')
+            ->andWhere('c.inCafe = :inCafe')
+            ->setParameter('adopted', false)
+            ->setParameter('inCafe', false)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
