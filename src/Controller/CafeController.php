@@ -6,6 +6,7 @@ use App\Entity\Cat;
 use App\Entity\ChatMessage;
 use App\Repository\CatRepository;
 use App\Repository\ChatMessageRepository;
+use App\Service\AchievementService;
 use App\Service\CatTherapistService;
 use App\Service\CatWisdomService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,6 +24,7 @@ class CafeController extends AbstractController
         private CatWisdomService $wisdomService,
         private CatTherapistService $therapistService,
         private ChatMessageRepository $chatMessageRepository,
+        private AchievementService $achievementService,
     ) {
     }
 
@@ -59,7 +61,12 @@ class CafeController extends AbstractController
         $cat->feed();
         $this->entityManager->flush();
 
-        $this->addFlash('success', sprintf('%s has been fed and is feeling better!', $cat->getName()));
+        // Track achievements
+        $this->achievementService->incrementStat('feed', $cat->getId());
+        $this->checkBondingAchievements($cat);
+
+        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_FEED ? ' 💕 They LOVE being fed!' : '';
+        $this->addFlash('success', sprintf('%s has been fed and is feeling better!%s', $cat->getName(), $bonusMsg));
 
         return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
     }
@@ -75,7 +82,12 @@ class CafeController extends AbstractController
         $cat->pet();
         $this->entityManager->flush();
 
-        $this->addFlash('success', sprintf('%s purrs happily!', $cat->getName()));
+        // Track achievements
+        $this->achievementService->incrementStat('pet', $cat->getId());
+        $this->checkBondingAchievements($cat);
+
+        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_PET ? ' 💕 They LOVE being petted!' : '';
+        $this->addFlash('success', sprintf('%s purrs happily!%s', $cat->getName(), $bonusMsg));
 
         return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
     }
@@ -91,7 +103,12 @@ class CafeController extends AbstractController
         $cat->play();
         $this->entityManager->flush();
 
-        $this->addFlash('success', sprintf('%s had so much fun playing!', $cat->getName()));
+        // Track achievements
+        $this->achievementService->incrementStat('play', $cat->getId());
+        $this->checkBondingAchievements($cat);
+
+        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_PLAY ? ' 💕 They LOVE playing!' : '';
+        $this->addFlash('success', sprintf('%s had so much fun playing!%s', $cat->getName(), $bonusMsg));
 
         return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
     }
@@ -107,15 +124,30 @@ class CafeController extends AbstractController
         $cat->rest();
         $this->entityManager->flush();
 
-        $this->addFlash('success', sprintf('%s takes a peaceful nap.', $cat->getName()));
+        // Track achievements
+        $this->achievementService->incrementStat('rest', $cat->getId());
+        $this->checkBondingAchievements($cat);
+
+        $bonusMsg = $cat->getPreferredInteraction() === Cat::INTERACTION_REST ? ' 💕 They LOVE resting with you!' : '';
+        $this->addFlash('success', sprintf('%s takes a peaceful nap.%s', $cat->getName(), $bonusMsg));
 
         return $this->redirectToRoute('app_cat_show', ['id' => $cat->getId()]);
+    }
+
+    private function checkBondingAchievements(Cat $cat): void
+    {
+        if ($cat->getBondingLevel() >= 80) {
+            $this->achievementService->unlockAchievement('best_friends');
+        }
     }
 
     #[Route('/cat/{id}/wisdom', name: 'app_cat_wisdom', methods: ['GET'])]
     public function wisdom(Cat $cat): JsonResponse
     {
         $fortune = $this->wisdomService->getWisdomFromCat($cat->getName(), $cat->getMood());
+
+        // Track wisdom achievement
+        $this->achievementService->incrementStat('wisdom', $cat->getId());
 
         return new JsonResponse([
             'success' => true,
@@ -166,6 +198,9 @@ class CafeController extends AbstractController
 
         $this->entityManager->flush();
 
+        // Track therapy achievement
+        $this->achievementService->incrementStat('therapy', $cat->getId());
+
         return new JsonResponse([
             'success' => true,
             'catName' => $cat->getName(),
@@ -210,17 +245,8 @@ class CafeController extends AbstractController
     #[Route('/cat/{id}/adopt', name: 'app_cat_adopt', methods: ['POST'])]
     public function adopt(Cat $cat): Response
     {
-        if ($cat->isAdopted()) {
-            $this->addFlash('error', 'This cat has already been adopted!');
-            return $this->redirectToRoute('app_home');
-        }
-
-        $cat->setAdopted(true);
-        $this->entityManager->flush();
-
-        $this->addFlash('success', sprintf('Congratulations! You have adopted %s!', $cat->getName()));
-
-        return $this->redirectToRoute('app_adoptions');
+        // Redirect to the new adoption journey system
+        return $this->redirectToRoute('app_cat_journey', ['id' => $cat->getId()]);
     }
 
     #[Route('/adoptions', name: 'app_adoptions')]

@@ -4,6 +4,7 @@ namespace App\Twig\Components;
 
 use App\Entity\Cat;
 use App\Repository\CatRepository;
+use App\Service\AchievementService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -24,9 +25,13 @@ class CatInteraction
     #[LiveProp(writable: true)]
     public string $actionMessage = '';
 
+    #[LiveProp(writable: true)]
+    public string $bondingMessage = '';
+
     public function __construct(
         private readonly CatRepository $catRepository,
         private readonly EntityManagerInterface $entityManager,
+        private readonly AchievementService $achievementService,
     ) {
     }
 
@@ -42,8 +47,12 @@ class CatInteraction
         if ($cat && !$cat->isAdopted()) {
             $cat->feed();
             $this->entityManager->flush();
+            $this->achievementService->incrementStat('feed', $cat->getId());
+            $this->checkBondingAchievements($cat);
             $this->lastAction = 'feed';
-            $this->actionMessage = "Yum! {$cat->getName()} enjoyed their meal! 🍽️";
+            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_FEED ? ' 💕 They LOVE this!' : '';
+            $this->actionMessage = "Yum! {$cat->getName()} enjoyed their meal! 🍽️{$bonus}";
+            $this->bondingMessage = $this->getBondingMessage($cat, Cat::INTERACTION_FEED);
         }
     }
 
@@ -54,8 +63,12 @@ class CatInteraction
         if ($cat && !$cat->isAdopted()) {
             $cat->pet();
             $this->entityManager->flush();
+            $this->achievementService->incrementStat('pet', $cat->getId());
+            $this->checkBondingAchievements($cat);
             $this->lastAction = 'pet';
-            $this->actionMessage = "{$cat->getName()} purrs contentedly... 🤗";
+            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_PET ? ' 💕 They LOVE this!' : '';
+            $this->actionMessage = "{$cat->getName()} purrs contentedly... 🤗{$bonus}";
+            $this->bondingMessage = $this->getBondingMessage($cat, Cat::INTERACTION_PET);
         }
     }
 
@@ -66,8 +79,12 @@ class CatInteraction
         if ($cat && !$cat->isAdopted()) {
             $cat->play();
             $this->entityManager->flush();
+            $this->achievementService->incrementStat('play', $cat->getId());
+            $this->checkBondingAchievements($cat);
             $this->lastAction = 'play';
-            $this->actionMessage = "{$cat->getName()} had so much fun playing! 🧶";
+            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_PLAY ? ' 💕 They LOVE this!' : '';
+            $this->actionMessage = "{$cat->getName()} had so much fun playing! 🧶{$bonus}";
+            $this->bondingMessage = $this->getBondingMessage($cat, Cat::INTERACTION_PLAY);
         }
     }
 
@@ -78,9 +95,27 @@ class CatInteraction
         if ($cat && !$cat->isAdopted()) {
             $cat->rest();
             $this->entityManager->flush();
+            $this->achievementService->incrementStat('rest', $cat->getId());
+            $this->checkBondingAchievements($cat);
             $this->lastAction = 'rest';
-            $this->actionMessage = "{$cat->getName()} is feeling refreshed! 😴";
+            $bonus = $cat->getPreferredInteraction() === Cat::INTERACTION_REST ? ' 💕 They LOVE this!' : '';
+            $this->actionMessage = "{$cat->getName()} is feeling refreshed! 😴{$bonus}";
+            $this->bondingMessage = $this->getBondingMessage($cat, Cat::INTERACTION_REST);
         }
+    }
+
+    private function checkBondingAchievements(Cat $cat): void
+    {
+        if ($cat->getBondingLevel() >= 80) {
+            $this->achievementService->unlockAchievement('best_friends');
+        }
+    }
+
+    private function getBondingMessage(Cat $cat, string $action): string
+    {
+        $isPreferred = $cat->getPreferredInteraction() === $action;
+        $points = $isPreferred ? 10 : 5;
+        return "+{$points} bonding " . ($isPreferred ? '(favorite!)' : '');
     }
 
     #[LiveAction]
@@ -88,6 +123,7 @@ class CatInteraction
     {
         $this->lastAction = '';
         $this->actionMessage = '';
+        $this->bondingMessage = '';
     }
 
     public function getHungerBarColor(): string
