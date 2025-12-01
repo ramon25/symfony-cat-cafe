@@ -6,6 +6,8 @@ use App\Entity\Cat;
 use App\Repository\CatRepository;
 use App\Service\AchievementService;
 use App\Service\AdoptionService;
+use App\Service\CatMatchmakerService;
+use App\Service\CatPersonalityService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,6 +22,8 @@ class AdoptionController extends AbstractController
         private CatRepository $catRepository,
         private AdoptionService $adoptionService,
         private AchievementService $achievementService,
+        private CatMatchmakerService $matchmakerService,
+        private CatPersonalityService $personalityService,
     ) {
     }
 
@@ -186,6 +190,108 @@ class AdoptionController extends AbstractController
             'isFostered' => $cat->isFostered(),
             'compatibilityScore' => $cat->getCompatibilityScore(),
             'preferredInteraction' => $cat->getPreferredInteraction(),
+        ]);
+    }
+
+    // === AI-POWERED FEATURES ===
+
+    #[Route('/matchmaker', name: 'app_matchmaker')]
+    public function matchmaker(Request $request): Response
+    {
+        // Check if user has completed a quiz (stored in session)
+        $session = $request->getSession();
+        $quizAnswers = $session->get('last_quiz_answers', null);
+
+        return $this->render('adoption/matchmaker.html.twig', [
+            'hasQuizAnswers' => $quizAnswers !== null,
+            'recommendations' => $quizAnswers ? $this->matchmakerService->getRecommendations($quizAnswers) : [],
+        ]);
+    }
+
+    #[Route('/matchmaker/quiz', name: 'app_matchmaker_quiz')]
+    public function matchmakerQuiz(): Response
+    {
+        $questions = $this->adoptionService->getQuizQuestions();
+
+        return $this->render('adoption/matchmaker_quiz.html.twig', [
+            'questions' => $questions,
+        ]);
+    }
+
+    #[Route('/matchmaker/quiz/submit', name: 'app_matchmaker_quiz_submit', methods: ['POST'])]
+    public function matchmakerQuizSubmit(Request $request): Response
+    {
+        $answers = $request->request->all();
+
+        // Store answers in session for recommendations
+        $session = $request->getSession();
+        $session->set('last_quiz_answers', $answers);
+
+        // Unlock quiz achievement
+        $this->achievementService->unlockAchievement('quiz_master');
+
+        return $this->redirectToRoute('app_matchmaker');
+    }
+
+    #[Route('/api/cat/{id}/ai-insights', name: 'app_api_cat_ai_insights', methods: ['GET'])]
+    public function apiAiInsights(Cat $cat, Request $request): JsonResponse
+    {
+        $session = $request->getSession();
+        $quizAnswers = $session->get('last_quiz_answers', []);
+        $score = $cat->getCompatibilityScore() ?? 50;
+
+        $insights = $this->matchmakerService->getCompatibilityInsights($cat, $quizAnswers, $score);
+
+        return new JsonResponse([
+            'insights' => $insights,
+        ]);
+    }
+
+    #[Route('/api/cat/{id}/bonding-advice', name: 'app_api_cat_bonding_advice', methods: ['GET'])]
+    public function apiBondingAdvice(Cat $cat): JsonResponse
+    {
+        $advice = $this->matchmakerService->getBondingAdvice($cat, $cat->getBondingLevel());
+
+        return new JsonResponse([
+            'advice' => $advice,
+            'bondingLevel' => $cat->getBondingLevel(),
+            'milestone' => $cat->getBondingMilestone(),
+        ]);
+    }
+
+    #[Route('/api/cat/{id}/personality', name: 'app_api_cat_personality', methods: ['GET'])]
+    public function apiPersonality(Cat $cat): JsonResponse
+    {
+        $profile = $this->personalityService->generatePersonalityProfile($cat);
+        $funFacts = $this->personalityService->generateFunFacts($cat);
+
+        return new JsonResponse([
+            'profile' => $profile,
+            'funFacts' => $funFacts,
+        ]);
+    }
+
+    #[Route('/api/cat/{id}/backstory', name: 'app_api_cat_backstory', methods: ['GET'])]
+    public function apiBackstory(Cat $cat): JsonResponse
+    {
+        $backstory = $this->personalityService->generateBackstory($cat);
+
+        return new JsonResponse([
+            'backstory' => $backstory,
+        ]);
+    }
+
+    #[Route('/api/cat/{id}/thought', name: 'app_api_cat_thought', methods: ['GET'])]
+    public function apiThought(Cat $cat): JsonResponse
+    {
+        $thought = $this->personalityService->generateCatThought($cat);
+        $bondingMessage = $this->personalityService->generateBondingMessage($cat, $cat->getBondingLevel());
+
+        return new JsonResponse([
+            'thought' => $thought,
+            'bondingMessage' => $bondingMessage,
+            'mood' => $cat->getMood(),
+            'moodEmoji' => $cat->getMoodEmoji(),
         ]);
     }
 }

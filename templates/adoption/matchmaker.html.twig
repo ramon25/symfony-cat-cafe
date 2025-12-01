@@ -1,0 +1,161 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AI Cat Matchmaker | Whiskers & Wonders{% endblock %}
+
+{% block body %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <span class="text-6xl mb-4 block">🤖</span>
+        <h1 class="text-4xl font-bold text-gray-800 dark:text-white mb-2">AI Cat Matchmaker</h1>
+        <p class="text-gray-600 dark:text-gray-300 text-lg">Let our AI help you find your purrfect companion!</p>
+        <span class="inline-block mt-2 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full">AI Powered</span>
+    </div>
+
+    {% if not hasQuizAnswers %}
+    <!-- No Quiz Yet -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-8 text-center">
+            <span class="text-8xl mb-4 block">💕</span>
+            <h2 class="text-2xl font-bold text-white mb-2">Let's Find Your Match!</h2>
+            <p class="text-purple-100">Answer a few questions about your lifestyle and we'll recommend the perfect cats for you.</p>
+        </div>
+
+        <div class="p-8">
+            <div class="space-y-6">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center">
+                        <span class="text-2xl">📝</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 dark:text-white">Take the Quiz</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Answer 8 quick questions about your lifestyle and preferences.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-pink-100 dark:bg-pink-900/50 rounded-full flex items-center justify-center">
+                        <span class="text-2xl">🤖</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 dark:text-white">AI Analysis</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Our AI matchmaker analyzes compatibility with all our cats.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center">
+                        <span class="text-2xl">😻</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 dark:text-white">Meet Your Matches</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Get personalized recommendations with AI insights!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <a href="{{ path('app_matchmaker_quiz') }}"
+                   class="block w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-6 rounded-xl transition-all text-lg text-center shadow-lg hover:shadow-xl">
+                    Start the Quiz
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Recommendations -->
+    <div class="space-y-6">
+        <!-- Retake Quiz Button -->
+        <div class="flex justify-between items-center">
+            <p class="text-gray-600 dark:text-gray-300">Based on your lifestyle quiz answers:</p>
+            <a href="{{ path('app_matchmaker_quiz') }}" class="text-purple-600 dark:text-purple-400 hover:underline text-sm font-medium">
+                Retake Quiz
+            </a>
+        </div>
+
+        {% if recommendations|length > 0 %}
+        <!-- Top Matches -->
+        <div class="space-y-6">
+            {% for index, rec in recommendations %}
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden {% if index == 0 %}ring-2 ring-yellow-400{% endif %}">
+                {% if index == 0 %}
+                <div class="bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 text-center">
+                    <span class="text-white font-bold text-sm">🏆 Best Match!</span>
+                </div>
+                {% endif %}
+
+                <div class="p-6">
+                    <div class="flex items-start gap-6">
+                        <!-- Cat Avatar -->
+                        <div class="flex-shrink-0 w-24 h-24 bg-gradient-to-br from-orange-200 to-amber-200 dark:from-orange-700 dark:to-amber-700 rounded-xl flex items-center justify-center">
+                            <span class="text-5xl">{{ rec.cat.moodEmoji }}</span>
+                        </div>
+
+                        <!-- Cat Info -->
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="text-2xl font-bold text-gray-800 dark:text-white">{{ rec.cat.name }}</h3>
+                                <span class="px-3 py-1 bg-gradient-to-r {% if rec.score >= 80 %}from-green-400 to-emerald-400{% elseif rec.score >= 60 %}from-blue-400 to-cyan-400{% else %}from-purple-400 to-pink-400{% endif %} text-white text-sm font-bold rounded-full">
+                                    {{ rec.score }}% Match
+                                </span>
+                            </div>
+
+                            <p class="text-gray-500 dark:text-gray-400 mb-3">
+                                {{ rec.cat.age }} year old {{ rec.cat.color }} {{ rec.cat.breed }}
+                            </p>
+
+                            <!-- AI Reason -->
+                            <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg p-4 mb-4">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-lg">🤖</span>
+                                    <div>
+                                        <p class="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">AI Matchmaker Says:</p>
+                                        <p class="text-gray-700 dark:text-gray-300 text-sm">{{ rec.reason }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Stats -->
+                            <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                <span>{{ rec.cat.preferredInteractionEmoji }} Loves: {{ rec.cat.preferredInteractionLabel }}</span>
+                                <span>{{ rec.cat.bondingEmoji }} {{ rec.cat.bondingMilestone }}</span>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-3">
+                                <a href="{{ path('app_cat_show', {id: rec.cat.id}) }}"
+                                   class="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-3 px-4 rounded-lg transition-all text-center shadow-md hover:shadow-lg">
+                                    Meet {{ rec.cat.name }}
+                                </a>
+                                <a href="{{ path('app_cat_journey', {id: rec.cat.id}) }}"
+                                   class="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-3 px-4 rounded-lg transition-all text-center">
+                                    View Journey
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <!-- No cats available -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+            <span class="text-6xl mb-4 block">😿</span>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">No Cats Available</h3>
+            <p class="text-gray-600 dark:text-gray-300">All our cats have found their forever homes! Check back soon.</p>
+        </div>
+        {% endif %}
+
+        <!-- View All Cats -->
+        <div class="text-center mt-8">
+            <a href="{{ path('app_home') }}" class="text-orange-600 dark:text-orange-400 hover:underline font-medium">
+                View All Available Cats
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
